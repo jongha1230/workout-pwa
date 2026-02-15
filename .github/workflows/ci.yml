@@ -30,3 +30,9 @@ jobs:
 
       - name: Build
         run: npm run build
+      
+      - name: Test (if present)
+        run: npm test --if-present
+
+      - name: Format check
+        run: npm run format:check

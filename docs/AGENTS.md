@@ -17,6 +17,12 @@
 - npm run typecheck
 - npm run build
 
+## Package Manager
+- Use npm and keep package-lock.json in sync.
+
+## Next App Router Rules
+- Prefer Server Components by default; add 'use client' only when necessary.
+
 ## Definition Of Done
 - npm run lint passes
 - npm run typecheck passes

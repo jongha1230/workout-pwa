@@ -38,7 +38,9 @@ React `getSnapshot` 경고가 발생.
 
 ### 다음 액션
 
-- 핵심 기록 플로우 안정화 이후 백업/동기화 계층 설계 초안 작성
+- [ ] 핵심 기록 플로우 안정화 이후 백업/동기화 계층 설계 초안 작성
+
+→ Day1에서는 핵심 기록 플로우를 안정화하는 데 집중했다.
 
 ---
 
@@ -60,6 +62,11 @@ React `getSnapshot` 경고가 발생.
 - 트리거: `push`, `pull_request` on `main`
 - 실행: Node 20, `npm ci`, `npm run lint`, `npm run typecheck`, `npm run build`
 
+### CI 이슈
+
+- `format:check` 스크립트가 원격에 반영되지 않아 CI 실패 → package.json 커밋으로 해결
+- Prettier 포맷 불일치로 format check 실패 → `npm run format` 적용 후 재실행 예정
+
 ### 전략 메모
 
 - README 목표상 네트워크가 불안정해도 운동 기록이 끊기면 안 된다.
@@ -71,9 +78,17 @@ React `getSnapshot` 경고가 발생.
 - Supabase를 1단계에서 바로 도입하지 않고,
   Local-first 기반을 먼저 안정화해 제품 목표와 기술 구조의 충돌을 방지한다.
 
+### 배운 점
+
+- CI 실패는 대부분 설정 누락이나 반영 누락에서 발생한다.
+- Git rebase와 stash는 무섭지만, 흐름을 이해하면 충분히 복구 가능하다.
+- 코드 품질 게이트를 초기에 구축하는 것이 중요하다.
+
 ### 다음 액션
 
 - [x] 첫 push 후 GitHub Actions 실행 확인
 - [x] CI 결과 반영해 체크 상태 업데이트
 - [ ] IndexedDB(Dexie)로 sessions 영속화(새로고침 복구)
 - [ ] Supabase sync draft 설계(offline queue)
+
+→ Day2에서는 코드 품질과 운영 기반을 정리했다.

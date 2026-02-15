@@ -53,3 +53,14 @@
 
 - Prefer focused commits with one concern per commit.
 - Recommended prefixes: feat, fix, docs, chore, refactor, test.
+
+## Commit Convention
+
+Use Conventional Commits style:
+
+- feat: new feature
+- fix: bug fix
+- refactor: internal change without behavior change
+- chore: tooling/config updates
+- docs: documentation updates
+- ci: CI workflow updates

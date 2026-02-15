@@ -6,7 +6,7 @@ export type SessionSet = {
   reps: number;
 };
 
-type SessionStore = {
+export type SessionStore = {
   sessions: Record<string, SessionSet[]>;
   addSet: (
     sessionId: string,

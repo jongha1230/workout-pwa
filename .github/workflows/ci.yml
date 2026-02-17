@@ -30,9 +30,14 @@ jobs:
 
       - name: Build
         run: npm run build
-      
-      - name: Test (if present)
-        run: npm test --if-present
+
+      - name: Install Playwright Browsers (if e2e tests exist)
+        if: ${{ hashFiles('tests/**/*.spec.ts') != '' }}
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E Test (if present)
+        if: ${{ hashFiles('tests/**/*.spec.ts') != '' }}
+        run: npm run test:e2e
 
       - name: Format check
         run: npm run format:check

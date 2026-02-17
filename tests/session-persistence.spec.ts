@@ -15,6 +15,7 @@ const startSession = async (page: import("@playwright/test").Page) => {
 
 const addAndSaveTwoSets = async (
   page: import("@playwright/test").Page,
+  sessionId: string,
 ): Promise<void> => {
   await page.getByRole("button", { name: "세트 추가" }).click();
   await page.getByRole("button", { name: "세트 추가" }).click();
@@ -30,7 +31,7 @@ const addAndSaveTwoSets = async (
   await repsInputs.nth(1).fill("8");
 
   await page.getByRole("button", { name: "저장" }).click();
-  await expect(page).toHaveURL(/\/routines$/);
+  await expect(page).toHaveURL(new RegExp(`/session/${sessionId}$`));
 };
 
 test("session persists across reload and re-entry", async ({
@@ -38,7 +39,7 @@ test("session persists across reload and re-entry", async ({
   context,
 }) => {
   const sessionId = await startSession(page);
-  await addAndSaveTwoSets(page);
+  await addAndSaveTwoSets(page, sessionId);
 
   await page.goto(`/session/${sessionId}`);
   await expect(page.getByText("세트 1")).toBeVisible();
@@ -58,7 +59,7 @@ test("session persists across reload and re-entry", async ({
 
 test("set updates and deletes persist to indexeddb", async ({ page }) => {
   const sessionId = await startSession(page);
-  await addAndSaveTwoSets(page);
+  await addAndSaveTwoSets(page, sessionId);
 
   await page.goto(`/session/${sessionId}`);
 
@@ -68,7 +69,7 @@ test("set updates and deletes persist to indexeddb", async ({ page }) => {
   await page.getByRole("button", { name: "삭제" }).nth(1).click();
 
   await page.getByRole("button", { name: "저장" }).click();
-  await expect(page).toHaveURL(/\/routines$/);
+  await expect(page).toHaveURL(new RegExp(`/session/${sessionId}$`));
 
   await page.goto(`/session/${sessionId}`);
   await expect(page.getByPlaceholder("중량 (예: 60)")).toHaveCount(1);

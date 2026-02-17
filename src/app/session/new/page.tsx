@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -11,18 +11,36 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { getRoutine } from "@/entities/routine/repo/routine.repo";
 import { createSession } from "@/entities/session/repo/session.repo";
-import { ROUTINES } from "@/lib/constants";
 
 function NewSessionContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const routineId = searchParams.get("routineId");
-  const routine = routineId
-    ? ROUTINES.find((item) => item.id === routineId)
-    : undefined;
+  const [routineName, setRoutineName] = useState<string | null>(null);
   const [isStarting, setIsStarting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const selectedRoutineName = routineId ? (routineName ?? routineId) : null;
+
+  useEffect(() => {
+    if (!routineId) return;
+
+    let cancelled = false;
+    void getRoutine(routineId)
+      .then((routine) => {
+        if (cancelled) return;
+        setRoutineName(routine?.name ?? routineId);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setRoutineName(routineId);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [routineId]);
 
   const handleStart = async () => {
     if (isStarting) return;
@@ -53,7 +71,7 @@ function NewSessionContent() {
           <CardTitle>새 세션</CardTitle>
           <CardDescription>
             {routineId
-              ? `선택된 루틴: ${routine?.name ?? routineId}`
+              ? `선택된 루틴: ${selectedRoutineName}`
               : "루틴 없이 바로 세션을 시작합니다."}
           </CardDescription>
         </CardHeader>

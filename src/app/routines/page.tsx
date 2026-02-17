@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,28 +13,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  deleteSession,
-  listSessionsByRoutine,
-} from "@/entities/session/repo/session.repo";
-import { ROUTINES } from "@/lib/constants";
-import type { SessionRecord } from "@/lib/db";
-
-type SessionsByRoutine = Record<string, SessionRecord[]>;
-
-const formatSessionLabel = (session: SessionRecord) =>
-  new Date(session.updatedAt).toLocaleString("ko-KR", {
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  deleteRoutine,
+  listRoutines,
+} from "@/entities/routine/repo/routine.repo";
+import type { RoutineRecord } from "@/lib/db";
 
 export default function RoutinesPage() {
-  const [sessionsByRoutine, setSessionsByRoutine] = useState<SessionsByRoutine>(
-    {},
-  );
+  const router = useRouter();
+  const [routines, setRoutines] = useState<RoutineRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [deletingSessionId, setDeletingSessionId] = useState<string | null>(
+  const [deletingRoutineId, setDeletingRoutineId] = useState<string | null>(
     null,
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -41,130 +30,118 @@ export default function RoutinesPage() {
   useEffect(() => {
     let cancelled = false;
 
-    const loadSessions = async () => {
-      setIsLoading(true);
-      setErrorMessage(null);
-
-      try {
-        const entries = await Promise.all(
-          ROUTINES.map(async (routine) => {
-            const sessions = await listSessionsByRoutine(routine.id);
-            return [routine.id, sessions] as const;
-          }),
-        );
+    void listRoutines()
+      .then((loadedRoutines) => {
         if (cancelled) return;
-        setSessionsByRoutine(Object.fromEntries(entries));
-      } catch {
+        setRoutines(loadedRoutines);
+      })
+      .catch(() => {
         if (cancelled) return;
-        setErrorMessage("세션 목록을 불러오지 못했습니다.");
-      } finally {
+        setErrorMessage("루틴 목록을 불러오지 못했습니다.");
+      })
+      .finally(() => {
         if (cancelled) return;
         setIsLoading(false);
-      }
-    };
-
-    void loadSessions();
+      });
 
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const handleDeleteSession = async (routineId: string, sessionId: string) => {
-    setDeletingSessionId(sessionId);
+  const handleDeleteRoutine = async (routineId: string) => {
+    if (deletingRoutineId) return;
+
+    const shouldDelete = window.confirm(
+      "루틴을 삭제하면 저장된 세션도 함께 삭제됩니다. 계속할까요?",
+    );
+    if (!shouldDelete) return;
+
+    setDeletingRoutineId(routineId);
     setErrorMessage(null);
 
     try {
-      await deleteSession(sessionId);
-      setSessionsByRoutine((prev) => ({
-        ...prev,
-        [routineId]: (prev[routineId] ?? []).filter(
-          (session) => session.id !== sessionId,
-        ),
-      }));
+      await deleteRoutine(routineId);
+      setRoutines((prev) => prev.filter((routine) => routine.id !== routineId));
     } catch {
-      setErrorMessage("세션 삭제에 실패했습니다.");
+      setErrorMessage("루틴 삭제에 실패했습니다.");
     } finally {
-      setDeletingSessionId((prev) => (prev === sessionId ? null : prev));
+      setDeletingRoutineId((prev) => (prev === routineId ? null : prev));
     }
+  };
+
+  const handleOpenRoutine = (routineId: string) => {
+    router.push(`/routines/${encodeURIComponent(routineId)}`);
   };
 
   return (
     <main className="mx-auto flex w-full max-w-xl flex-col gap-4 p-4">
-      <h1 className="text-2xl font-semibold">루틴</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">루틴</h1>
+        <Button asChild size="sm">
+          <Link href="/routines/new">루틴 추가</Link>
+        </Button>
+      </div>
+
       {errorMessage ? (
         <p className="text-sm text-destructive">{errorMessage}</p>
       ) : null}
 
-      {ROUTINES.map((routine) => {
-        const sessions = sessionsByRoutine[routine.id] ?? [];
-        return (
-          <Card key={routine.id}>
-            <CardHeader>
-              <CardTitle>{routine.name}</CardTitle>
-              <CardDescription>{routine.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-3">
-              <Button asChild>
-                <Link
-                  href={`/session/new?routineId=${encodeURIComponent(routine.id)}`}
-                >
-                  이 루틴으로 시작
-                </Link>
-              </Button>
+      {isLoading ? (
+        <Card>
+          <CardContent className="pt-6 text-sm text-muted-foreground">
+            루틴 불러오는 중...
+          </CardContent>
+        </Card>
+      ) : null}
 
-              <div className="rounded-md border p-3">
-                <p className="text-sm font-medium">저장된 세션</p>
-                {isLoading ? (
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    세션 불러오는 중...
-                  </p>
-                ) : sessions.length === 0 ? (
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    아직 저장된 세션이 없습니다.
-                  </p>
-                ) : (
-                  <div className="mt-2 flex flex-col gap-2">
-                    {sessions.map((session) => (
-                      <div
-                        key={session.id}
-                        className="flex items-center justify-between gap-2 rounded-md border p-2"
-                      >
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium">
-                            {routine.name} · {formatSessionLabel(session)}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            세트 {session.sets.length}개 · ID{" "}
-                            {session.id.slice(0, 8)}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button asChild size="sm" variant="secondary">
-                            <Link href={`/session/${session.id}`}>열기</Link>
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            disabled={deletingSessionId === session.id}
-                            onClick={() =>
-                              handleDeleteSession(routine.id, session.id)
-                            }
-                          >
-                            {deletingSessionId === session.id
-                              ? "삭제 중..."
-                              : "삭제"}
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
+      {!isLoading && routines.length === 0 ? (
+        <Card>
+          <CardContent className="pt-6 text-sm text-muted-foreground">
+            아직 루틴이 없습니다. 루틴을 추가해 주세요.
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {routines.map((routine) => (
+        <Card
+          key={routine.id}
+          role="button"
+          tabIndex={0}
+          className="cursor-pointer transition-colors hover:bg-muted/30"
+          onClick={() => handleOpenRoutine(routine.id)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              handleOpenRoutine(routine.id);
+            }
+          }}
+        >
+          <CardHeader>
+            <CardTitle>{routine.name}</CardTitle>
+            <CardDescription>
+              {routine.description ?? "설명이 없습니다."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-end">
+            <Button
+              type="button"
+              size="sm"
+              variant="destructive"
+              disabled={deletingRoutineId === routine.id}
+              onClick={(event) => {
+                event.stopPropagation();
+                void handleDeleteRoutine(routine.id);
+              }}
+              onKeyDown={(event) => {
+                event.stopPropagation();
+              }}
+            >
+              {deletingRoutineId === routine.id ? "삭제 중..." : "루틴 삭제"}
+            </Button>
+          </CardContent>
+        </Card>
+      ))}
     </main>
   );
 }

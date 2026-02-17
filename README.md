@@ -8,6 +8,16 @@
 
 ---
 
+## 🔥 2026-02-17 기술 하이라이트 (Technical Highlights)
+
+- 정보구조(IA) 재정렬: Home / Routines / Session 책임 분리
+- Dexie 기반 Local-first 영속화 + hydration 적용
+- 자동 채움 로직을 세션 내부로 제한 (Predictable UX)
+- 저장 후 자동 리디렉션 제거
+- Playwright E2E로 새로고침/재진입 복구 검증
+
+---
+
 ## 🧠 Core Design Decisions
 
 ### 1️⃣ UI 상태와 확정 상태 분리

@@ -88,7 +88,42 @@ React `getSnapshot` 경고가 발생.
 
 - [x] 첫 push 후 GitHub Actions 실행 확인
 - [x] CI 결과 반영해 체크 상태 업데이트
-- [ ] IndexedDB(Dexie)로 sessions 영속화(새로고침 복구)
+- [ ] IndexedDB(Dexie)로 sessions 영속화(새로고침 복구) (구현 완료, DoD 검증 진행중)
 - [ ] Supabase sync draft 설계(offline queue)
 
 → Day2에서는 코드 품질과 운영 기반을 정리했다.
+
+---
+
+## 2026-02-17
+
+### 요약
+
+- Dexie 기반 세션 영속화(저장/복구) 작업 착수 및 hydration 경로 추가
+
+### 구현
+
+- Dexie 기반 sessions 영속화(DB + repository) 및 store hydration/persist 연결
+- session repository에 `list/getLatestByRoutine/delete` 추가로 세션 레벨 R/D 경로 확장
+- `/session/new`에서 세션 생성 후 이동, `/session/[id]` 진입 시 hydrate로 복구
+- 빈 입력 상태는 자동 저장하지 않도록 처리(persist 제어) + 저장 성공/실패 토스트로 사용자 피드백 추가
+- 입력 검증 강화(빈 값/유효성 오류, 중량 0 초과) 및 입력 포커스 세트 강조 UX 반영
+- 직전 값 자동 채움 + 같은 루틴 최신 세션 seed 읽기로 기록 속도 개선
+- Playwright E2E로 새로고침/재진입 복구 시나리오 자동화
+- CI에서 e2e 스펙 존재 시에만 Playwright 설치/테스트 실행하도록 워크플로 업데이트
+
+### CI 이슈
+
+- format:check에서 일부 파일 포맷 불일치로 실패 → 포맷 커밋으로 해결 완료
+
+### 확인 필요(DoD)
+
+- [ ] 세트 추가 후 새로고침(F5) 시 동일 데이터가 복구된다
+- [ ] 탭/브라우저 종료 후 재진입 시에도 복구된다
+- [ ] 세트 수정/삭제가 DB에도 반영된다
+- [x] 새로고침/재진입 복구에 대한 Playwright 자동화 테스트 추가
+
+### 다음 액션
+
+- [ ] "새로고침 복구" DoD 통과 확인 후 02-15 체크박스 업데이트
+- [ ] (선택) persist 호출 debounce 적용(입력 중 과도 저장 방지)

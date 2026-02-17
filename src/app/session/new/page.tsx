@@ -12,11 +12,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { createSession } from "@/entities/session/repo/session.repo";
+import { ROUTINES } from "@/lib/constants";
 
 function NewSessionContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const routineId = searchParams.get("routineId");
+  const routine = routineId
+    ? ROUTINES.find((item) => item.id === routineId)
+    : undefined;
   const [isStarting, setIsStarting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -49,7 +53,7 @@ function NewSessionContent() {
           <CardTitle>새 세션</CardTitle>
           <CardDescription>
             {routineId
-              ? `선택된 루틴: ${routineId}`
+              ? `선택된 루틴: ${routine?.name ?? routineId}`
               : "루틴 없이 바로 세션을 시작합니다."}
           </CardDescription>
         </CardHeader>

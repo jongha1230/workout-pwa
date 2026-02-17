@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 
 import { SetInputSchema } from "@/entities/model/session/model/set.schema";
@@ -33,6 +33,7 @@ type SetSeed = {
 
 export default function SessionDetailPage() {
   const { id: sessionId } = useParams<{ id: string }>();
+  const router = useRouter();
 
   const setsFromStore = useSessionStore((state) => state.sessions[sessionId]);
   const hydrateSession = useSessionStore((state) => state.hydrateSession);
@@ -191,7 +192,11 @@ export default function SessionDetailPage() {
   ) => {
     // draft 상태 업데이트 (weight: value, reps: value)
     setDraftBySetId((prev) => {
-      const current = prev[setId] ?? { weight: "", reps: "" };
+      const baseSet = safeSets.find((item) => item.id === setId);
+      const current = prev[setId] ?? {
+        weight: baseSet ? String(baseSet.weight) : "",
+        reps: baseSet ? String(baseSet.reps) : "",
+      };
       return {
         ...prev,
         [setId]: {
@@ -255,6 +260,7 @@ export default function SessionDetailPage() {
     replaceSets(sessionId, nextSets);
     setErrorMessage(null);
     toast.success("Saved session successfully");
+    router.push("/");
   };
 
   if (!sessionId) {
@@ -328,7 +334,7 @@ export default function SessionDetailPage() {
                         <p className="text-sm font-medium">세트 {index + 1}</p>
                         <Input
                           type="number"
-                          min={0.5}
+                          min={0}
                           step={0.5}
                           placeholder="중량 (예: 60)"
                           value={currentWeight}

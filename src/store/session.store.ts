@@ -1,6 +1,9 @@
 import { create } from "zustand";
 
-import { getSession, upsertSessionSets } from "@/entities/session/repo/session.repo";
+import {
+  getSession,
+  upsertSessionSets,
+} from "@/entities/session/repo/session.repo";
 import type { SessionSet } from "@/lib/db";
 
 export type { SessionSet };

@@ -22,13 +22,18 @@ export type SessionStore = {
     sessionId: string,
     // 마지막 세트의 weight와 reps를 기본값으로 사용할 때 사용
     seed?: { weight: number; reps: number },
+    options?: { persist?: boolean },
   ) => string;
   updateSet: (
     sessionId: string,
     setId: string,
     patch: Partial<Omit<SessionSet, "id">>,
   ) => void;
-  removeSet: (sessionId: string, setId: string) => void;
+  removeSet: (
+    sessionId: string,
+    setId: string,
+    options?: { persist?: boolean },
+  ) => void;
   replaceSets: (sessionId: string, sets: SessionSet[]) => void;
 };
 
@@ -52,9 +57,10 @@ export const useSessionStore = create<SessionStore>((set, get) => {
         },
       }));
     },
-    addSet: (sessionId, seed) => {
+    addSet: (sessionId, seed, options) => {
       const setId = crypto.randomUUID();
       const prev = get().sessions[sessionId] ?? [];
+      const shouldPersist = options?.persist ?? true;
       // 마지막 세트 가져오기
       const last = prev.length ? prev[prev.length - 1] : undefined;
       // 마지막 세트가 없으면 seed 또는 기본값 사용
@@ -72,7 +78,9 @@ export const useSessionStore = create<SessionStore>((set, get) => {
           [sessionId]: next,
         },
       }));
-      persistSessionSets(sessionId, next);
+      if (shouldPersist) {
+        persistSessionSets(sessionId, next);
+      }
 
       return setId;
     },
@@ -91,8 +99,9 @@ export const useSessionStore = create<SessionStore>((set, get) => {
       }));
       persistSessionSets(sessionId, next);
     },
-    removeSet: (sessionId, setId) => {
+    removeSet: (sessionId, setId, options) => {
       const prev = get().sessions[sessionId] ?? [];
+      const shouldPersist = options?.persist ?? true;
       const next = prev.filter((item) => item.id !== setId);
 
       set((state) => ({
@@ -101,7 +110,9 @@ export const useSessionStore = create<SessionStore>((set, get) => {
           [sessionId]: next,
         },
       }));
-      persistSessionSets(sessionId, next);
+      if (shouldPersist) {
+        persistSessionSets(sessionId, next);
+      }
     },
     replaceSets: (sessionId, sets) => {
       const next = cloneSets(sets);

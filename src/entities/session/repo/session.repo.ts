@@ -5,6 +5,11 @@ type CreateSessionInput = {
   routineId: string | null;
 };
 
+type GetLatestSessionByRoutineOptions = {
+  excludeSessionId?: string;
+  requireSets?: boolean;
+};
+
 const cloneSets = (sets: SessionSet[]): SessionSet[] =>
   sets.map((item) => ({
     id: item.id,
@@ -31,6 +36,42 @@ export async function createSession(
 export async function getSession(id: string): Promise<SessionRecord | null> {
   const session = await db.sessions.get(id);
   return session ?? null;
+}
+
+export async function listSessions(): Promise<SessionRecord[]> {
+  return db.sessions.orderBy("updatedAt").reverse().toArray();
+}
+
+export async function listSessionsByRoutine(
+  routineId: string,
+): Promise<SessionRecord[]> {
+  const sessions = await db.sessions
+    .where("routineId")
+    .equals(routineId)
+    .sortBy("updatedAt");
+  return sessions.reverse();
+}
+
+export async function getLatestSessionByRoutine(
+  routineId: string,
+  options: GetLatestSessionByRoutineOptions = {},
+): Promise<SessionRecord | null> {
+  const sessions = await listSessionsByRoutine(routineId);
+
+  for (const session of sessions) {
+    if (options.excludeSessionId && session.id === options.excludeSessionId) {
+      continue;
+    }
+
+    const requiresSets = options.requireSets ?? true;
+    if (requiresSets && session.sets.length === 0) {
+      continue;
+    }
+
+    return session;
+  }
+
+  return null;
 }
 
 export async function upsertSessionSets(
@@ -62,4 +103,8 @@ export async function upsertSessionSets(
 
   await db.sessions.put(nextRecord);
   return nextRecord;
+}
+
+export async function deleteSession(sessionId: string): Promise<void> {
+  await db.sessions.delete(sessionId);
 }

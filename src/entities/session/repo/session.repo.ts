@@ -15,6 +15,7 @@ const cloneSets = (sets: SessionSet[]): SessionSet[] =>
     id: item.id,
     weight: item.weight,
     reps: item.reps,
+    completed: item.completed ?? false,
   }));
 
 export async function createSession(

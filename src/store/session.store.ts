@@ -13,6 +13,7 @@ const cloneSets = (sets: SessionSet[]): SessionSet[] =>
     id: item.id,
     weight: item.weight,
     reps: item.reps,
+    completed: item.completed ?? false,
   }));
 
 export type SessionStore = {
@@ -70,7 +71,7 @@ export const useSessionStore = create<SessionStore>((set, get) => {
           ? { weight: last.weight, reps: last.reps }
           : { weight: 0, reps: 1 });
       // 새 세트 추가
-      const next = [...prev, { id: setId, ...initial }];
+      const next = [...prev, { id: setId, ...initial, completed: false }];
 
       set((state) => ({
         sessions: {

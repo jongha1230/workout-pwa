@@ -1,14 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 
 import { SetInputSchema } from "@/entities/model/session/model/set.schema";
-import {
-  getLatestSessionByRoutine,
-  getSession,
-} from "@/entities/session/repo/session.repo";
+import { getRoutine } from "@/entities/routine/repo/routine.repo";
+import { getSession } from "@/entities/session/repo/session.repo";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -26,18 +25,13 @@ type DraftSet = {
   reps: string;
 };
 
-type SetSeed = {
-  weight: number;
-  reps: number;
-};
-
 export default function SessionDetailPage() {
   const { id: sessionId } = useParams<{ id: string }>();
-  const router = useRouter();
 
   const setsFromStore = useSessionStore((state) => state.sessions[sessionId]);
   const hydrateSession = useSessionStore((state) => state.hydrateSession);
   const addSet = useSessionStore((state) => state.addSet);
+  const updateSet = useSessionStore((state) => state.updateSet);
   const removeSet = useSessionStore((state) => state.removeSet);
   const replaceSets = useSessionStore((state) => state.replaceSets);
 
@@ -46,9 +40,11 @@ export default function SessionDetailPage() {
     {},
   );
   const [activeSetId, setActiveSetId] = useState<string | null>(null);
-  const [latestRoutineSeed, setLatestRoutineSeed] = useState<SetSeed | null>(
-    null,
+  const [sessionTitle, setSessionTitle] = useState("세션");
+  const [sessionDescription, setSessionDescription] = useState(
+    "세트를 여러 개 추가/수정/삭제할 수 있습니다.",
   );
+  const [routineLinkHref, setRoutineLinkHref] = useState("/routines");
   const [isHydrating, setIsHydrating] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -79,54 +75,36 @@ export default function SessionDetailPage() {
 
     let cancelled = false;
 
-    const loadRoutineSeed = async () => {
+    const loadSessionMeta = async () => {
       try {
         const currentSession = await getSession(sessionId);
         if (!currentSession?.routineId) {
           if (!cancelled) {
-            setLatestRoutineSeed(null);
+            setSessionTitle("빠른 세션");
+            setSessionDescription("루틴 없이 바로 기록하는 세션입니다.");
+            setRoutineLinkHref("/routines");
           }
           return;
         }
 
-        const latestRoutineSession = await getLatestSessionByRoutine(
-          currentSession.routineId,
-          {
-            excludeSessionId: sessionId,
-            requireSets: true,
-          },
-        );
-
-        if (cancelled || !latestRoutineSession) {
-          if (!cancelled) {
-            setLatestRoutineSeed(null);
-          }
-          return;
-        }
-
-        const lastSet = latestRoutineSession.sets.at(-1);
-        if (!lastSet) {
-          if (!cancelled) {
-            setLatestRoutineSeed(null);
-          }
-          return;
-        }
-
+        const routine = await getRoutine(currentSession.routineId);
         if (!cancelled) {
-          setLatestRoutineSeed({
-            weight: lastSet.weight,
-            reps: lastSet.reps,
-          });
+          setSessionTitle(routine?.name ?? "루틴 세션");
+          setSessionDescription(
+            routine?.description ??
+              "세트를 여러 개 추가/수정/삭제할 수 있습니다.",
+          );
+          setRoutineLinkHref(`/routines/${currentSession.routineId}`);
         }
       } catch (error) {
         if (!cancelled) {
-          setLatestRoutineSeed(null);
+          setRoutineLinkHref("/routines");
         }
-        console.error("Failed to load latest routine seed.", error);
+        console.error("Failed to load session metadata.", error);
       }
     };
 
-    void loadRoutineSeed();
+    void loadSessionMeta();
 
     return () => {
       cancelled = true;
@@ -135,45 +113,39 @@ export default function SessionDetailPage() {
 
   const handleAddSet = () => {
     if (!sessionId) return;
-    // 새 세트 추가 후 draft 상태 업데이트
+    // 같은 세션의 직전 세트만 자동 채움에 사용
     const lastSet = safeSets.at(-1);
     const lastDraft = lastSet ? draftBySetId[lastSet.id] : undefined;
-    const fallbackWeightText = latestRoutineSeed
-      ? String(latestRoutineSeed.weight)
-      : "";
-    const fallbackRepsText = latestRoutineSeed
-      ? String(latestRoutineSeed.reps)
-      : "";
+
     const initialWeightText =
       lastDraft?.weight?.trim() && lastDraft.weight.trim().length > 0
         ? lastDraft.weight
         : lastSet
           ? String(lastSet.weight)
-          : fallbackWeightText;
+          : "";
     const initialRepsText =
       lastDraft?.reps?.trim() && lastDraft.reps.trim().length > 0
         ? lastDraft.reps
         : lastSet
           ? String(lastSet.reps)
-          : fallbackRepsText;
-    const initialWeight = Number(
-      initialWeightText.length > 0 ? initialWeightText : "0",
-    );
-    const initialReps = Number(
-      initialRepsText.length > 0 ? initialRepsText : "1",
-    );
-    const resolvedWeight =
-      Number.isFinite(initialWeight) && initialWeight >= 0 ? initialWeight : 0;
-    const resolvedReps =
-      Number.isInteger(initialReps) && initialReps >= 1 ? initialReps : 1;
-    const newId = addSet(
-      sessionId,
-      {
-        weight: resolvedWeight,
-        reps: resolvedReps,
-      },
-      { persist: false },
-    );
+          : "";
+
+    const hasPreviousSet = Boolean(lastSet);
+    const initialWeight = Number(initialWeightText);
+    const initialReps = Number(initialRepsText);
+    const seed = hasPreviousSet
+      ? {
+          weight:
+            Number.isFinite(initialWeight) && initialWeight >= 0
+              ? initialWeight
+              : (lastSet?.weight ?? 0),
+          reps:
+            Number.isInteger(initialReps) && initialReps >= 1
+              ? initialReps
+              : (lastSet?.reps ?? 1),
+        }
+      : undefined;
+    const newId = addSet(sessionId, seed, { persist: false });
 
     setDraftBySetId((prev) => ({
       ...prev,
@@ -219,6 +191,48 @@ export default function SessionDetailPage() {
     });
   };
 
+  const handleToggleCompleted = (item: SessionSet, checked: boolean) => {
+    if (!sessionId) return;
+
+    const draft = draftBySetId[item.id];
+    const weightValue = draft?.weight ?? String(item.weight);
+    const repsValue = draft?.reps ?? String(item.reps);
+
+    if (weightValue.trim() === "" || repsValue.trim() === "") {
+      const message = "완료 체크 전에 중량과 횟수를 입력해 주세요.";
+      setErrorMessage(message);
+      toast.error(message);
+      return;
+    }
+
+    const parsed = SetInputSchema.safeParse({
+      weight: weightValue,
+      reps: repsValue,
+    });
+
+    if (!parsed.success) {
+      const message = `완료 체크 실패: ${parsed.error.issues[0]?.message ?? "입력값 오류"}`;
+      setErrorMessage(message);
+      toast.error(message);
+      return;
+    }
+
+    updateSet(sessionId, item.id, {
+      weight: parsed.data.weight,
+      reps: parsed.data.reps,
+      completed: checked,
+    });
+
+    setDraftBySetId((prev) => ({
+      ...prev,
+      [item.id]: {
+        weight: String(parsed.data.weight),
+        reps: String(parsed.data.reps),
+      },
+    }));
+    setErrorMessage(null);
+  };
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!sessionId) return;
@@ -254,13 +268,13 @@ export default function SessionDetailPage() {
         id: item.id,
         weight: parsed.data.weight,
         reps: parsed.data.reps,
+        completed: item.completed ?? false,
       });
     }
 
     replaceSets(sessionId, nextSets);
     setErrorMessage(null);
     toast.success("Saved session successfully");
-    router.push("/");
   };
 
   if (!sessionId) {
@@ -299,13 +313,17 @@ export default function SessionDetailPage() {
       <main className="mx-auto flex w-full max-w-xl flex-col gap-4 p-4">
         <Card>
           <CardHeader>
-            <CardTitle>세션 {sessionId}</CardTitle>
-            <CardDescription>
-              세트를 여러 개 추가/수정/삭제할 수 있습니다.
-            </CardDescription>
+            <CardTitle>{sessionTitle}</CardTitle>
+            <CardDescription>{sessionDescription}</CardDescription>
           </CardHeader>
           <CardContent>
             <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
+              <div className="flex flex-wrap gap-2">
+                <Button asChild type="button" size="sm" variant="outline">
+                  <Link href={routineLinkHref}>루틴으로</Link>
+                </Button>
+              </div>
+
               <Button type="button" variant="outline" onClick={handleAddSet}>
                 세트 추가
               </Button>
@@ -320,6 +338,7 @@ export default function SessionDetailPage() {
                 const draft = draftBySetId[item.id];
                 const currentWeight = draft?.weight ?? String(item.weight);
                 const currentReps = draft?.reps ?? String(item.reps);
+                const isCompleted = item.completed ?? false;
                 const isActive = activeSetId === item.id;
                 return (
                   <Card
@@ -355,6 +374,17 @@ export default function SessionDetailPage() {
                             handleChange(item.id, "reps", event.target.value)
                           }
                         />
+                        <label className="flex items-center gap-2 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={isCompleted}
+                            onFocus={() => setActiveSetId(item.id)}
+                            onChange={(event) =>
+                              handleToggleCompleted(item, event.target.checked)
+                            }
+                          />
+                          완료
+                        </label>
                         <Button
                           type="button"
                           variant="destructive"

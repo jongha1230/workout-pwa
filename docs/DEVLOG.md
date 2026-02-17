@@ -67,6 +67,19 @@ React `getSnapshot` 경고가 발생.
 - `format:check` 스크립트가 원격에 반영되지 않아 CI 실패 → package.json 커밋으로 해결
 - Prettier 포맷 불일치로 format check 실패 → `npm run format` 적용 후 재실행 예정
 
+### Evidence
+
+- Commit(s):
+  - https://github.com/jongha1230/workout-pwa/commit/a7bd1d49fac48aa7ae257b13111d16c1137ff1e4
+  - https://github.com/jongha1230/workout-pwa/commit/20f2a50d364dabb452793754935c51409e31c27b
+  - https://github.com/jongha1230/workout-pwa/commit/cf2ec690e34fdfeb509a94b617fef5efe8299f4c
+- CI:
+  - https://github.com/jongha1230/workout-pwa/actions/runs/22039189528
+- Repro/Verify:
+  1. `npm ci` 실행 후 `npm run format:check` 통과 확인
+  2. `npm run lint`, `npm run typecheck`, `npm run build` 순서로 실행하고 모두 통과 확인
+  3. GitHub Actions CI run에서 동일 스크립트 성공 상태 확인
+
 ### 전략 메모
 
 - README 목표상 네트워크가 불안정해도 운동 기록이 끊기면 안 된다.
@@ -118,6 +131,21 @@ React `getSnapshot` 경고가 발생.
 ### CI
 
 - 포맷/정적 검사/빌드/E2E 기준으로 재검증 완료 (`format:check`, `lint`, `typecheck`, `build`, `test:e2e`)
+
+### Evidence
+
+- Commit(s):
+  - https://github.com/jongha1230/workout-pwa/commit/6d0da5bf0fc8a8263302ec35e207347d934540d7
+  - https://github.com/jongha1230/workout-pwa/commit/5e1c317ea26cca2d4fffb501a363f5d6a58e49ed
+  - https://github.com/jongha1230/workout-pwa/commit/d16c8bc083058b1e7c50e95076221bbdb52dc9e8
+  - https://github.com/jongha1230/workout-pwa/commit/f5338dd61e70938a6d1d57fcc5c8d25f3cfc9cea
+  - https://github.com/jongha1230/workout-pwa/commit/90715d9fe69163cf10aa3758665731b043d0a06d
+- CI:
+  - https://github.com/jongha1230/workout-pwa/actions/runs/22101171797
+- Repro/Verify:
+  1. `/routines` → 루틴 선택(카드 클릭) → `이 루틴으로 시작`으로 세션 진입
+  2. 세트 추가 후 중량/횟수 입력 및 저장 → 새로고침(F5) 및 재진입(`/session/[id]`) 시 동일 데이터 복구 확인
+  3. 세트 `완료` 체크 후 `/routines/[id]`에서 완료 요약(`완료 x/y`) 반영 확인
 
 ### DoD
 

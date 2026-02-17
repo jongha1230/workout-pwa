@@ -8,16 +8,6 @@
 
 ---
 
-## 🔥 2026-02-17 기술 하이라이트 (Technical Highlights)
-
-- 정보구조(IA) 재정렬: Home / Routines / Session 책임 분리
-- Dexie 기반 Local-first 영속화 + hydration 적용
-- 자동 채움 로직을 세션 내부로 제한 (Predictable UX)
-- 저장 후 자동 리디렉션 제거
-- Playwright E2E로 새로고침/재진입 복구 검증
-
----
-
 ## 🧠 Core Design Decisions
 
 ### 1️⃣ UI 상태와 확정 상태 분리
@@ -58,6 +48,16 @@
 - **Zustand** – 경량 상태 관리
 - **Zod** – 런타임 입력 검증
 - **shadcn/ui + Tailwind CSS** – 컴포넌트 기반 UI 구성
+
+---
+
+## 🔥 Technical Highlights
+
+_상세 개발 과정은 DEVLOG에 정리했습니다._
+
+- **Local-first Architecture**: 네트워크 상태와 관계없이 기록을 잃지 않는 IndexedDB 기반 로컬 퍼시스트 구현 (Dexie + hydration)
+- **Resilient User Experience**: Zustand 기반 영속화 + 새로고침/비정상 종료 후 복구 보장
+- **Quality Gate**: Playwright E2E 테스트와 GitHub Actions CI를 통한 회귀 자동 검증 도입
 
 ---
 

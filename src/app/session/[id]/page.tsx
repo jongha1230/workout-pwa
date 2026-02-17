@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
 import { SetInputSchema } from "@/entities/model/session/model/set.schema";
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { useSessionStore } from "@/store/session.store";
+import { useSessionStore, type SessionSet } from "@/store/session.store";
 
 type DraftSet = {
   weight: string;
@@ -25,17 +25,39 @@ export default function SessionDetailPage() {
   const { id: sessionId } = useParams<{ id: string }>();
 
   const setsFromStore = useSessionStore((state) => state.sessions[sessionId]);
+  const hydrateSession = useSessionStore((state) => state.hydrateSession);
   const addSet = useSessionStore((state) => state.addSet);
-  const updateSet = useSessionStore((state) => state.updateSet);
   const removeSet = useSessionStore((state) => state.removeSet);
+  const replaceSets = useSessionStore((state) => state.replaceSets);
 
   // store 데이터와 분리된 입력용 draft 상태
   const [draftBySetId, setDraftBySetId] = useState<Record<string, DraftSet>>(
     {},
   );
+  const [isHydrating, setIsHydrating] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const safeSets = setsFromStore ?? [];
+
+  useEffect(() => {
+    if (!sessionId) return;
+
+    let cancelled = false;
+
+    void hydrateSession(sessionId)
+      .catch(() => {
+        if (cancelled) return;
+        setErrorMessage("세션 데이터를 불러오지 못했습니다.");
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setIsHydrating(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [hydrateSession, sessionId]);
 
   const handleAddSet = () => {
     if (!sessionId) return;
@@ -87,13 +109,8 @@ export default function SessionDetailPage() {
   const handleRemoveSet = (setId: string) => {
     if (!sessionId) return;
     // 세트 삭제 후 draft 상태 업데이트 (weight: "", reps: "")
-    try {
-      removeSet(sessionId, setId);
-    } catch {
-      setErrorMessage("세트 삭제 실패");
-      return;
-    }
-    // draft 상태 업데이트 (weight: "", reps: "")
+    removeSet(sessionId, setId);
+
     setDraftBySetId((prev) => {
       const next = { ...prev };
       delete next[setId];
@@ -104,6 +121,8 @@ export default function SessionDetailPage() {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!sessionId) return;
+
+    const nextSets: SessionSet[] = [];
 
     for (let index = 0; index < safeSets.length; index += 1) {
       const item = safeSets[index];
@@ -120,14 +139,14 @@ export default function SessionDetailPage() {
         return;
       }
 
-      try {
-        updateSet(sessionId, item.id, parsed.data);
-      } catch {
-        setErrorMessage("TODO: updateSet 구현 필요");
-        return;
-      }
+      nextSets.push({
+        id: item.id,
+        weight: parsed.data.weight,
+        reps: parsed.data.reps,
+      });
     }
 
+    replaceSets(sessionId, nextSets);
     setErrorMessage(null);
   };
 
@@ -137,6 +156,18 @@ export default function SessionDetailPage() {
         <Card>
           <CardHeader>
             <CardTitle>세션 ID가 없습니다</CardTitle>
+          </CardHeader>
+        </Card>
+      </main>
+    );
+  }
+
+  if (isHydrating) {
+    return (
+      <main className="mx-auto w-full max-w-xl p-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>세션 불러오는 중...</CardTitle>
           </CardHeader>
         </Card>
       </main>

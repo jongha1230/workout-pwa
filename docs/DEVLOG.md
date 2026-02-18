@@ -181,19 +181,18 @@ React `getSnapshot` 경고가 발생.
 
 ### Evidence
 
-- Flow/UI:
-  - `docs/evidence/2026-02-18/01-home-cta.png`
-  - `docs/evidence/2026-02-18/02-routine-detail-empty.png`
-  - `docs/evidence/2026-02-18/03-session-editor-filled.png`
-  - `docs/evidence/2026-02-18/04-save-toast.png`
-  - `docs/evidence/2026-02-18/05-routine-detail-saved-sessions.png`
-  - `docs/evidence/2026-02-18/06-validation-error.png`
-  - `docs/evidence/2026-02-18/07-url-routine-detail.png`
-  - `docs/evidence/2026-02-18/08-url-session-editor.png`
-- GIF:
-  - `docs/evidence/2026-02-18/refresh-persist.gif`
-- CI:
-  - `docs/evidence/2026-02-18/ci-e2e-passed.png` (`test:e2e` 3 passed 표시)
+- 핵심 증거:
+  ![Refresh Persist](./evidence/2026-02-18/refresh-persist.gif)
+  ![CI E2E Passed](./evidence/2026-02-18/ci-e2e-passed.png)
+- Flow/UI 링크:
+  - [Home CTA](./evidence/2026-02-18/01-home-cta.png)
+  - [Routine Detail (empty)](./evidence/2026-02-18/02-routine-detail-empty.png)
+  - [Session Editor](./evidence/2026-02-18/03-session-editor-filled.png)
+  - [Save Toast](./evidence/2026-02-18/04-save-toast.png)
+  - [Routine Detail (saved sessions)](./evidence/2026-02-18/05-routine-detail-saved-sessions.png)
+  - [Validation Error](./evidence/2026-02-18/06-validation-error.png)
+  - [URL: Routine Detail](./evidence/2026-02-18/07-url-routine-detail.png)
+  - [URL: Session Editor](./evidence/2026-02-18/08-url-session-editor.png)
 
 ### Repro/Verify (GIF 기준)
 

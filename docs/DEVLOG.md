@@ -153,7 +153,7 @@ React `getSnapshot` 경고가 발생.
 - [x] 저장 후 세션 페이지 stay + 루틴 이동 UX가 동작한다
 - [x] 세션 자동 채움이 "같은 세션 내부"로 제한되었다
 - [x] 완료 체크 상태가 저장/복구되고 루틴 상세에는 요약으로만 노출된다
-- [x] 새로고침/재진입 시 로컬 복구가 동작한다(E2E 포함)
+- [x] 새로고침/재진입 시 로컬 복구 동작을 수동으로 확인했다
 
 ### 배운 점
 
@@ -168,3 +168,40 @@ React `getSnapshot` 경고가 발생.
 - [ ] Supabase sync draft 설계(offline queue)
 
 → Day3에서는 기능 중심 MVP를 사용자 중심 구조로 재정렬했다.
+
+---
+
+## 2026-02-18
+
+### 요약
+
+- 일반 사용자 시작 경로에서 `/session/new`를 거치지 않도록 플로우를 변경했다.
+- 루틴 상세의 `이 루틴으로 시작` 클릭 시 세션을 생성하고 바로 `/session/[id]`로 이동한다.
+- Playwright E2E + GIF 기반 재검증 완료
+
+### Evidence
+
+- Flow/UI:
+  - `docs/evidence/2026-02-18/01-home-cta.png`
+  - `docs/evidence/2026-02-18/02-routine-detail-empty.png`
+  - `docs/evidence/2026-02-18/03-session-editor-filled.png`
+  - `docs/evidence/2026-02-18/04-save-toast.png`
+  - `docs/evidence/2026-02-18/05-routine-detail-saved-sessions.png`
+  - `docs/evidence/2026-02-18/06-validation-error.png`
+  - `docs/evidence/2026-02-18/07-url-routine-detail.png`
+  - `docs/evidence/2026-02-18/08-url-session-editor.png`
+- GIF:
+  - `docs/evidence/2026-02-18/refresh-persist.gif`
+- CI:
+  - `docs/evidence/2026-02-18/ci-e2e-passed.png` (`test:e2e` 3 passed 표시)
+
+### Repro/Verify (GIF 기준)
+
+1. `/routines`에서 루틴 카드를 눌러 `/routines/{routineId}`로 이동한다.
+2. `이 루틴으로 시작`을 눌러 `/session/{sessionId}`로 이동한다. (`/session/new` 미경유)
+3. `세트 추가`를 누르고 중량 `60`, 횟수 `10`을 입력한 뒤 `저장`을 누른다.
+4. 상단 `Saved session successfully` 토스트를 확인한다.
+5. `루틴으로`를 눌러 `/routines/{routineId}`로 돌아가 `저장된 세션` 카드가 생성됐는지 확인한다.
+6. `저장된 세션` 카드를 눌러 `/session/{sessionId}`로 다시 진입해 값(`60`, `10`)이 유지되는지 확인한다.
+
+→ Day4에서는 세션 플로우 변경 이후, E2E 및 수동 재현(GIF)을 통해 로컬 복구 동작을 명확히 검증하고 Evidence를 정리했다.

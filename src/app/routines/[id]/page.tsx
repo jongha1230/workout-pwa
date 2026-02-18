@@ -17,6 +17,7 @@ import {
   getRoutine,
 } from "@/entities/routine/repo/routine.repo";
 import {
+  createSession,
   deleteSession,
   listSessionsByRoutine,
 } from "@/entities/session/repo/session.repo";
@@ -36,6 +37,7 @@ export default function RoutineDetailPage() {
   const [sessions, setSessions] = useState<SessionRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeletingRoutine, setIsDeletingRoutine] = useState(false);
+  const [isStartingSession, setIsStartingSession] = useState(false);
   const [deletingSessionId, setDeletingSessionId] = useState<string | null>(
     null,
   );
@@ -117,6 +119,26 @@ export default function RoutineDetailPage() {
     router.push(`/session/${encodeURIComponent(sessionId)}`);
   };
 
+  const handleStartSession = async () => {
+    if (!routine || isStartingSession) return;
+
+    const sessionId = crypto.randomUUID();
+
+    setIsStartingSession(true);
+    setErrorMessage(null);
+
+    try {
+      await createSession({
+        id: sessionId,
+        routineId: routine.id,
+      });
+      router.push(`/session/${sessionId}`);
+    } catch {
+      setErrorMessage("세션 생성에 실패했습니다.");
+      setIsStartingSession(false);
+    }
+  };
+
   return (
     <main className="mx-auto flex w-full max-w-xl flex-col gap-4 p-4">
       <div className="flex items-center justify-between">
@@ -152,12 +174,14 @@ export default function RoutineDetailPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-2">
-              <Button asChild>
-                <Link
-                  href={`/session/new?routineId=${encodeURIComponent(routine.id)}`}
-                >
-                  이 루틴으로 시작
-                </Link>
+              <Button
+                type="button"
+                disabled={isStartingSession}
+                onClick={() => {
+                  void handleStartSession();
+                }}
+              >
+                {isStartingSession ? "세션 시작 중..." : "이 루틴으로 시작"}
               </Button>
               <Button
                 type="button"

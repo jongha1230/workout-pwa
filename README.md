@@ -35,7 +35,7 @@
 
 ## 🎬 Demo Scenarios
 
-1. 루틴 선택 → 세션 시작 → 세트 추가
+1. 홈 `세션 시작` 또는 루틴 상세 `이 루틴으로 시작` → 즉시 `/session/[id]` 진입 → 세트 추가
 2. 새 세트 추가 시 이전 세트 값 자동 채움
 3. 저장 시 Zod 기반 입력 검증 및 에러 메시지 표시
 4. 세트 수정 및 삭제 가능
@@ -55,9 +55,9 @@
 
 _상세 개발 과정은 DEVLOG에 정리했습니다._
 
-- **Local-first Architecture**: 네트워크 상태와 관계없이 기록을 잃지 않는 IndexedDB 기반 로컬 퍼시스트 구현 (Dexie + hydration)
-- **Resilient User Experience**: Zustand 기반 영속화 + 새로고침/비정상 종료 후 복구 보장
-- **Quality Gate**: Playwright E2E 테스트와 GitHub Actions CI를 통한 회귀 자동 검증 도입
+- **Local-first Architecture**: IndexedDB(Dexie)에 세션/루틴 데이터를 로컬로 저장
+- **Persistence Verification**: 수동 재현과 Playwright E2E에서 새로고침 후 데이터 유지 확인
+- **Quality Gate**: GitHub Actions에서 `lint`, `typecheck`, `build`, `test:e2e` 자동 실행
 
 ---
 

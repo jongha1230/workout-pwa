@@ -204,3 +204,41 @@ React `getSnapshot` 경고가 발생.
 6. `저장된 세션` 카드를 눌러 `/session/{sessionId}`로 다시 진입해 값(`60`, `10`)이 유지되는지 확인한다.
 
 → Day4에서는 세션 플로우 변경 이후, E2E 및 수동 재현(GIF)을 통해 로컬 복구 동작을 명확히 검증하고 Evidence를 정리했다.
+
+---
+
+## 2026-02-19
+
+### 요약
+
+- Playwright E2E 시작점을 `/session/new`에서 홈 CTA(`/`) 기반 플로우로 정렬했다.
+- `/session/new` 경로는 fallback entry로 유지되는지 별도 스모크 테스트를 추가했다.
+- 핵심 사용자 경로 회귀 검증과 fallback 경로 가용성 검증을 분리해 테스트 신뢰도를 높였다.
+
+### 변경 사항
+
+- `tests/session-persistence.spec.ts`
+  - `startSession()` 시작 경로를 `/`로 변경
+  - `new session route remains available as fallback entry` 테스트 추가
+
+### Local Verify
+
+- `npm run test:e2e` → 4 passed
+
+### 기존 미완료 액션 점검
+
+- [ ] (02-17) persist debounce 적용 → **보류**
+  - 현재 저장은 `submit/완료체크/삭제` 중심이라 입력 중 과도 저장 이슈가 크지 않음
+- [ ] (02-17) 루틴/세션 이름 정책 정리 → **이월**
+  - invalid id 처리 정책 확정 이후, 빈 상태/기본 제목 UX와 함께 정리 예정
+- [ ] (02-15, 02-17) Supabase sync draft 설계 → **이월**
+  - 현재 단계는 Local-first 검증 완성도가 우선이며 sync는 2차 설계 항목으로 분리
+
+### 다음 액션 (우선순위)
+
+- [ ] P0: 루틴 상세(`/routines/[id]`)의 `이 루틴으로 시작` 경로 E2E 1개 추가
+- [ ] P0: `/session/[id]` invalid id 처리 정책 확정(404/안내/리다이렉트) + 테스트 반영
+- [ ] P1: `src/app/layout.tsx` 메타데이터 기본값(`Create Next App`) 프로젝트 문구로 교체
+- [ ] P1: DEVLOG 과거 `다음 액션` 항목에 상태 라벨(완료/보류/이월) 반영
+
+→ Day5에서는 테스트를 실제 사용자 경로에 맞춰 정렬하고, 미완료 백로그를 우선순위 기준으로 재분류했다.

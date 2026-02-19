@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const startSession = async (page: import("@playwright/test").Page) => {
-  await page.goto("/session/new");
+  await page.goto("/");
   await page.getByRole("button", { name: "세션 시작" }).click();
   await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/);
 
@@ -12,6 +12,16 @@ const startSession = async (page: import("@playwright/test").Page) => {
 
   return match[1];
 };
+
+test("new session route remains available as fallback entry", async ({
+  page,
+}) => {
+  await page.goto("/session/new");
+  await expect(page).toHaveURL(/\/session\/new$/);
+
+  await page.locator("button").first().click();
+  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/);
+});
 
 const addAndSaveTwoSets = async (
   page: import("@playwright/test").Page,

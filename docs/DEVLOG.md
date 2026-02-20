@@ -270,6 +270,13 @@ React `getSnapshot` 경고가 발생.
 - `docs/DEVLOG.md`
   - 과거 `다음 액션` 항목 상태 라벨(완료/보류/이월) 정리
 
+### CI
+
+- `format:check` failed due to Prettier mismatch in `tests/session-persistence.spec.ts`.
+- Fixed in `ba6d287` (`chore(prettier): format session persistence spec`) and re-pushed.
+- Green run: https://github.com/jongha1230/workout-pwa/actions/runs/22227897937
+
+
 ### Local Verify
 
 - `npm run typecheck` → passed
@@ -288,3 +295,5 @@ React `getSnapshot` 경고가 발생.
 
 - [x] P1: `src/app/layout.tsx` 메타데이터 기본값(`Create Next App`) 프로젝트 문구로 교체 (2026-02-20 완료)
 - [x] P1: DEVLOG 과거 `다음 액션` 항목에 상태 라벨(완료/보류/이월) 반영 (2026-02-20 완료)
+
+→ Day6에서는 P0/P1을 마무리하고 CI 안정화(format/typecheck/e2e)까지 확인했다.

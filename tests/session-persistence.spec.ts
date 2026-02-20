@@ -19,9 +19,7 @@ const createRoutineAndOpenDetail = async (
   await page.goto("/routines/new");
 
   const routineName = `E2E Routine ${Date.now()}`;
-  await page
-    .getByPlaceholder("루틴 이름 (예: Upper Body)")
-    .fill(routineName);
+  await page.getByPlaceholder("루틴 이름 (예: Upper Body)").fill(routineName);
   await page.getByRole("button", { name: "생성" }).click();
   await expect(page).toHaveURL(/\/routines\/[0-9a-f-]{36}$/);
 
@@ -60,9 +58,7 @@ test("invalid session id shows guidance instead of editable form", async ({
   await page.goto("/session/not-a-valid-id");
 
   await expect(page.getByText("유효하지 않은 세션 ID입니다.")).toBeVisible();
-  await expect(page.getByRole("button", { name: "세트 추가" })).toHaveCount(
-    0,
-  );
+  await expect(page.getByRole("button", { name: "세트 추가" })).toHaveCount(0);
 });
 
 test("missing session id shows not-found guidance", async ({ page }) => {
@@ -70,9 +66,7 @@ test("missing session id shows not-found guidance", async ({ page }) => {
   await page.goto(`/session/${missingSessionId}`);
 
   await expect(page.getByText("세션을 찾을 수 없습니다.")).toBeVisible();
-  await expect(page.getByRole("button", { name: "세트 추가" })).toHaveCount(
-    0,
-  );
+  await expect(page.getByRole("button", { name: "세트 추가" })).toHaveCount(0);
 });
 
 const addAndSaveTwoSets = async (

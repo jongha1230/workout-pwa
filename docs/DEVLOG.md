@@ -236,8 +236,8 @@ React `getSnapshot` 경고가 발생.
 
 ### 다음 액션 (우선순위)
 
-- [ ] P0: 루틴 상세(`/routines/[id]`)의 `이 루틴으로 시작` 경로 E2E 1개 추가
-- [ ] P0: `/session/[id]` invalid id 처리 정책 확정(404/안내/리다이렉트) + 테스트 반영
+- [x] P0: 루틴 상세(`/routines/[id]`)의 `이 루틴으로 시작` 경로 E2E 1개 추가 (2026-02-20 완료)
+- [x] P0: `/session/[id]` invalid id 처리 정책 확정(404/안내/리다이렉트) + 테스트 반영 (2026-02-20 완료)
 - [ ] P1: `src/app/layout.tsx` 메타데이터 기본값(`Create Next App`) 프로젝트 문구로 교체
 - [ ] P1: DEVLOG 과거 `다음 액션` 항목에 상태 라벨(완료/보류/이월) 반영
 

@@ -54,6 +54,27 @@ test("new session route remains available as fallback entry", async ({
   await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/);
 });
 
+test("invalid session id shows guidance instead of editable form", async ({
+  page,
+}) => {
+  await page.goto("/session/not-a-valid-id");
+
+  await expect(page.getByText("유효하지 않은 세션 ID입니다.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "세트 추가" })).toHaveCount(
+    0,
+  );
+});
+
+test("missing session id shows not-found guidance", async ({ page }) => {
+  const missingSessionId = "11111111-1111-1111-1111-111111111111";
+  await page.goto(`/session/${missingSessionId}`);
+
+  await expect(page.getByText("세션을 찾을 수 없습니다.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "세트 추가" })).toHaveCount(
+    0,
+  );
+});
+
 const addAndSaveTwoSets = async (
   page: import("@playwright/test").Page,
   sessionId: string,

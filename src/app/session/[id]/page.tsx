@@ -25,6 +25,9 @@ type DraftSet = {
   reps: string;
 };
 
+const SESSION_ID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export default function SessionDetailPage() {
   const { id: sessionId } = useParams<{ id: string }>();
 
@@ -46,6 +49,7 @@ export default function SessionDetailPage() {
   );
   const [routineLinkHref, setRoutineLinkHref] = useState("/routines");
   const [isHydrating, setIsHydrating] = useState(true);
+  const [loadErrorMessage, setLoadErrorMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const safeSets = setsFromStore ?? [];
@@ -55,30 +59,34 @@ export default function SessionDetailPage() {
 
     let cancelled = false;
 
-    void hydrateSession(sessionId)
-      .catch(() => {
-        if (cancelled) return;
-        setErrorMessage("세션 데이터를 불러오지 못했습니다.");
-      })
-      .finally(() => {
-        if (cancelled) return;
-        setIsHydrating(false);
-      });
+    const loadSession = async () => {
+      setIsHydrating(true);
+      setLoadErrorMessage(null);
+      setErrorMessage(null);
+      setSessionTitle("세션");
+      setSessionDescription("세트를 여러 개 추가/수정/삭제할 수 있습니다.");
+      setRoutineLinkHref("/routines");
 
-    return () => {
-      cancelled = true;
-    };
-  }, [hydrateSession, sessionId]);
+      if (!SESSION_ID_PATTERN.test(sessionId)) {
+        if (!cancelled) {
+          setLoadErrorMessage("유효하지 않은 세션 ID입니다.");
+          setIsHydrating(false);
+        }
+        return;
+      }
 
-  useEffect(() => {
-    if (!sessionId) return;
-
-    let cancelled = false;
-
-    const loadSessionMeta = async () => {
       try {
         const currentSession = await getSession(sessionId);
-        if (!currentSession?.routineId) {
+        if (!currentSession) {
+          if (!cancelled) {
+            setLoadErrorMessage("세션을 찾을 수 없습니다.");
+          }
+          return;
+        }
+
+        await hydrateSession(sessionId);
+
+        if (!currentSession.routineId) {
           if (!cancelled) {
             setSessionTitle("빠른 세션");
             setSessionDescription("루틴 없이 바로 기록하는 세션입니다.");
@@ -98,18 +106,22 @@ export default function SessionDetailPage() {
         }
       } catch (error) {
         if (!cancelled) {
-          setRoutineLinkHref("/routines");
+          setLoadErrorMessage("세션 데이터를 불러오지 못했습니다.");
         }
-        console.error("Failed to load session metadata.", error);
+        console.error("Failed to load session data.", error);
+      } finally {
+        if (!cancelled) {
+          setIsHydrating(false);
+        }
       }
     };
 
-    void loadSessionMeta();
+    void loadSession();
 
     return () => {
       cancelled = true;
     };
-  }, [sessionId]);
+  }, [hydrateSession, sessionId]);
 
   const handleAddSet = () => {
     if (!sessionId) return;
@@ -301,6 +313,30 @@ export default function SessionDetailPage() {
             <CardHeader>
               <CardTitle>세션 불러오는 중...</CardTitle>
             </CardHeader>
+          </Card>
+        </main>
+      </>
+    );
+  }
+
+  if (loadErrorMessage) {
+    return (
+      <>
+        <Toaster position="top-right" />
+        <main className="mx-auto w-full max-w-xl p-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>세션을 불러올 수 없습니다</CardTitle>
+              <CardDescription>{loadErrorMessage}</CardDescription>
+            </CardHeader>
+            <CardContent className="flex gap-2">
+              <Button asChild size="sm" variant="outline">
+                <Link href="/">홈으로</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link href="/routines">루틴으로</Link>
+              </Button>
+            </CardContent>
           </Card>
         </main>
       </>

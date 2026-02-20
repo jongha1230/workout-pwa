@@ -38,7 +38,7 @@ React `getSnapshot` 경고가 발생.
 
 ### 다음 액션
 
-- [ ] 핵심 기록 플로우 안정화 이후 백업/동기화 계층 설계 초안 작성
+- [ ] 핵심 기록 플로우 안정화 이후 백업/동기화 계층 설계 초안 작성 → **이월**
 
 → Day1에서는 핵심 기록 플로우를 안정화하는 데 집중했다.
 
@@ -102,7 +102,7 @@ React `getSnapshot` 경고가 발생.
 - [x] 첫 push 후 GitHub Actions 실행 확인
 - [x] CI 결과 반영해 체크 상태 업데이트
 - [x] IndexedDB(Dexie)로 sessions 영속화(새로고침 복구)
-- [ ] Supabase sync draft 설계(offline queue)
+- [ ] Supabase sync draft 설계(offline queue) → **이월**
 
 → Day2에서는 코드 품질과 운영 기반을 정리했다.
 
@@ -163,9 +163,9 @@ React `getSnapshot` 경고가 발생.
 
 ### 다음 액션
 
-- [ ] (선택) persist 호출 debounce 적용(입력 중 과도 저장 방지)
-- [ ] 루틴/세션 이름 정책(기본 제목, 사용자 지정 UX) 정리
-- [ ] Supabase sync draft 설계(offline queue)
+- [ ] (선택) persist 호출 debounce 적용(입력 중 과도 저장 방지) → **보류**
+- [ ] 루틴/세션 이름 정책(기본 제목, 사용자 지정 UX) 정리 → **이월**
+- [ ] Supabase sync draft 설계(offline queue) → **이월**
 
 → Day3에서는 기능 중심 MVP를 사용자 중심 구조로 재정렬했다.
 
@@ -236,9 +236,63 @@ React `getSnapshot` 경고가 발생.
 
 ### 다음 액션 (우선순위)
 
-- [ ] P0: 루틴 상세(`/routines/[id]`)의 `이 루틴으로 시작` 경로 E2E 1개 추가
-- [ ] P0: `/session/[id]` invalid id 처리 정책 확정(404/안내/리다이렉트) + 테스트 반영
-- [ ] P1: `src/app/layout.tsx` 메타데이터 기본값(`Create Next App`) 프로젝트 문구로 교체
-- [ ] P1: DEVLOG 과거 `다음 액션` 항목에 상태 라벨(완료/보류/이월) 반영
+- [x] P0: 루틴 상세(`/routines/[id]`)의 `이 루틴으로 시작` 경로 E2E 1개 추가 (2026-02-20 완료)
+- [x] P0: `/session/[id]` invalid id 처리 정책 확정(404/안내/리다이렉트) + 테스트 반영 (2026-02-20 완료)
+- [x] P1: `src/app/layout.tsx` 메타데이터 기본값(`Create Next App`) 프로젝트 문구로 교체 (2026-02-20 완료)
+- [x] P1: DEVLOG 과거 `다음 액션` 항목에 상태 라벨(완료/보류/이월) 반영 (2026-02-20 완료)
 
 → Day5에서는 테스트를 실제 사용자 경로에 맞춰 정렬하고, 미완료 백로그를 우선순위 기준으로 재분류했다.
+
+---
+
+## 2026-02-20
+
+### 요약
+
+- P0-1: 루틴 상세(`/routines/[id]`)의 `이 루틴으로 시작` 경로 E2E를 추가했다.
+- P0-2: `/session/[id]` 접근 시 invalid/missing id를 구분해 안내하고 편집 폼 노출을 차단했다.
+- invalid id, missing id 각각에 대한 회귀 테스트를 추가했다.
+- P1: `src/app/layout.tsx` 메타데이터 기본값을 프로젝트 문구로 교체했다.
+- P1: DEVLOG 과거 `다음 액션` 항목에 상태 라벨(완료/보류/이월)을 반영했다.
+
+### 변경 사항
+
+- `tests/session-persistence.spec.ts`
+  - `starts a session directly from routine detail` 테스트 추가
+  - `invalid session id shows guidance instead of editable form` 테스트 추가
+  - `missing session id shows not-found guidance` 테스트 추가
+- `src/app/session/[id]/page.tsx`
+  - `SESSION_ID_PATTERN` 기반 session id 형식 검증 추가
+  - invalid id/없는 session id 접근 시 안내 카드 렌더링
+  - 안내 상태에서 세트 입력 폼 미노출 처리
+- `src/app/layout.tsx`
+  - 메타데이터 기본값을 `Workout PWA` / 프로젝트 설명으로 교체
+- `docs/DEVLOG.md`
+  - 과거 `다음 액션` 항목 상태 라벨(완료/보류/이월) 정리
+
+### CI
+
+- `format:check` failed due to Prettier mismatch in `tests/session-persistence.spec.ts`.
+- Fixed in `ba6d287` (`chore(prettier): format session persistence spec`) and re-pushed.
+- Green run: https://github.com/jongha1230/workout-pwa/actions/runs/22227897937
+
+### Local Verify
+
+- `npm run typecheck` → passed
+- `npm run test:e2e` → 7 passed
+
+### Evidence
+
+- Commit(s):
+  - https://github.com/jongha1230/workout-pwa/commit/088de742a30bd7d18fc64a2609e2ad64fc6d0bab
+  - https://github.com/jongha1230/workout-pwa/commit/43799ad3edf9111d5003d4292c0d05a151b0192d
+  - https://github.com/jongha1230/workout-pwa/commit/cf8ed4077c97dc309e583c511d6f7b79a598bc39
+- PR:
+  - https://github.com/jongha1230/workout-pwa/pull/3
+
+### 다음 액션
+
+- [x] P1: `src/app/layout.tsx` 메타데이터 기본값(`Create Next App`) 프로젝트 문구로 교체 (2026-02-20 완료)
+- [x] P1: DEVLOG 과거 `다음 액션` 항목에 상태 라벨(완료/보류/이월) 반영 (2026-02-20 완료)
+
+→ Day6에서는 P0/P1을 마무리하고 CI 안정화(format/typecheck/e2e)까지 확인했다.

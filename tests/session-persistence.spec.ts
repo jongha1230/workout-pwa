@@ -13,6 +13,35 @@ const startSession = async (page: import("@playwright/test").Page) => {
   return match[1];
 };
 
+const createRoutineAndOpenDetail = async (
+  page: import("@playwright/test").Page,
+) => {
+  await page.goto("/routines/new");
+
+  const routineName = `E2E Routine ${Date.now()}`;
+  await page.getByPlaceholder("루틴 이름 (예: Upper Body)").fill(routineName);
+  await page.getByRole("button", { name: "생성" }).click();
+  await expect(page).toHaveURL(/\/routines\/[0-9a-f-]{36}$/);
+
+  const match = page.url().match(/\/routines\/([^/?#]+)/);
+  if (!match) {
+    throw new Error("Failed to extract routine id from URL.");
+  }
+
+  return match[1];
+};
+
+test("starts a session directly from routine detail", async ({ page }) => {
+  const routineId = await createRoutineAndOpenDetail(page);
+
+  await page.getByRole("button", { name: "이 루틴으로 시작" }).click();
+  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/);
+  await expect(page.getByRole("link", { name: "루틴으로" })).toHaveAttribute(
+    "href",
+    `/routines/${routineId}`,
+  );
+});
+
 test("new session route remains available as fallback entry", async ({
   page,
 }) => {
@@ -21,6 +50,23 @@ test("new session route remains available as fallback entry", async ({
 
   await page.locator("button").first().click();
   await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/);
+});
+
+test("invalid session id shows guidance instead of editable form", async ({
+  page,
+}) => {
+  await page.goto("/session/not-a-valid-id");
+
+  await expect(page.getByText("유효하지 않은 세션 ID입니다.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "세트 추가" })).toHaveCount(0);
+});
+
+test("missing session id shows not-found guidance", async ({ page }) => {
+  const missingSessionId = "11111111-1111-1111-1111-111111111111";
+  await page.goto(`/session/${missingSessionId}`);
+
+  await expect(page.getByText("세션을 찾을 수 없습니다.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "세트 추가" })).toHaveCount(0);
 });
 
 const addAndSaveTwoSets = async (

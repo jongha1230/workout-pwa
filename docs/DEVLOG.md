@@ -242,3 +242,42 @@ React `getSnapshot` 경고가 발생.
 - [ ] P1: DEVLOG 과거 `다음 액션` 항목에 상태 라벨(완료/보류/이월) 반영
 
 → Day5에서는 테스트를 실제 사용자 경로에 맞춰 정렬하고, 미완료 백로그를 우선순위 기준으로 재분류했다.
+
+---
+
+## 2026-02-20
+
+### 요약
+
+- P0-1: 루틴 상세(`/routines/[id]`)의 `이 루틴으로 시작` 경로 E2E를 추가했다.
+- P0-2: `/session/[id]` 접근 시 invalid/missing id를 구분해 안내하고 편집 폼 노출을 차단했다.
+- invalid id, missing id 각각에 대한 회귀 테스트를 추가했다.
+
+### 변경 사항
+
+- `tests/session-persistence.spec.ts`
+  - `starts a session directly from routine detail` 테스트 추가
+  - `invalid session id shows guidance instead of editable form` 테스트 추가
+  - `missing session id shows not-found guidance` 테스트 추가
+- `src/app/session/[id]/page.tsx`
+  - `SESSION_ID_PATTERN` 기반 session id 형식 검증 추가
+  - invalid id/없는 session id 접근 시 안내 카드 렌더링
+  - 안내 상태에서 세트 입력 폼 미노출 처리
+
+### Local Verify
+
+- `npm run test:e2e` → 7 passed
+
+### Evidence
+
+- Commit(s):
+  - https://github.com/jongha1230/workout-pwa/commit/088de742a30bd7d18fc64a2609e2ad64fc6d0bab
+  - https://github.com/jongha1230/workout-pwa/commit/43799ad3edf9111d5003d4292c0d05a151b0192d
+  - https://github.com/jongha1230/workout-pwa/commit/cf8ed4077c97dc309e583c511d6f7b79a598bc39
+- PR:
+  - https://github.com/jongha1230/workout-pwa/pull/3
+
+### 다음 액션
+
+- [ ] P1: `src/app/layout.tsx` 메타데이터 기본값(`Create Next App`) 프로젝트 문구로 교체
+- [ ] P1: DEVLOG 과거 `다음 액션` 항목에 상태 라벨(완료/보류/이월) 반영

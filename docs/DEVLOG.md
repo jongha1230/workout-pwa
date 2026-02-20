@@ -276,7 +276,6 @@ React `getSnapshot` 경고가 발생.
 - Fixed in `ba6d287` (`chore(prettier): format session persistence spec`) and re-pushed.
 - Green run: https://github.com/jongha1230/workout-pwa/actions/runs/22227897937
 
-
 ### Local Verify
 
 - `npm run typecheck` → passed

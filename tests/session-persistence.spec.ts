@@ -13,6 +13,37 @@ const startSession = async (page: import("@playwright/test").Page) => {
   return match[1];
 };
 
+const createRoutineAndOpenDetail = async (
+  page: import("@playwright/test").Page,
+) => {
+  await page.goto("/routines/new");
+
+  const routineName = `E2E Routine ${Date.now()}`;
+  await page
+    .getByPlaceholder("루틴 이름 (예: Upper Body)")
+    .fill(routineName);
+  await page.getByRole("button", { name: "생성" }).click();
+  await expect(page).toHaveURL(/\/routines\/[0-9a-f-]{36}$/);
+
+  const match = page.url().match(/\/routines\/([^/?#]+)/);
+  if (!match) {
+    throw new Error("Failed to extract routine id from URL.");
+  }
+
+  return match[1];
+};
+
+test("starts a session directly from routine detail", async ({ page }) => {
+  const routineId = await createRoutineAndOpenDetail(page);
+
+  await page.getByRole("button", { name: "이 루틴으로 시작" }).click();
+  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/);
+  await expect(page.getByRole("link", { name: "루틴으로" })).toHaveAttribute(
+    "href",
+    `/routines/${routineId}`,
+  );
+});
+
 test("new session route remains available as fallback entry", async ({
   page,
 }) => {

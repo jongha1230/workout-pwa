@@ -296,3 +296,45 @@ React `getSnapshot` 경고가 발생.
 - [x] P1: DEVLOG 과거 `다음 액션` 항목에 상태 라벨(완료/보류/이월) 반영 (2026-02-20 완료)
 
 → Day6에서는 P0/P1을 마무리하고 CI 안정화(format/typecheck/e2e)까지 확인했다.
+
+---
+
+## 2026-02-21
+
+### 요약
+
+- PWA 설치 최소 요건(`manifest`, `theme-color`, 앱 아이콘)을 연결했다.
+- 파비콘 네이밍을 표준 형태(`favicon-16x16`, `favicon-32x32`, `favicon-48x48`)로 정리했다.
+- Chrome에서 설치 팝업 노출을 확인했다.
+
+### 변경 사항
+
+- `public/manifest.webmanifest` 추가
+  - `start_url`, `display`, `theme_color`, `icons` 설정
+- `src/app/layout.tsx`
+  - `<link rel="manifest" href="/manifest.webmanifest" />` 추가
+  - `<meta name="theme-color" content="#ffffff" />` 추가
+- `public/icons`
+  - `icon-192.png`, `icon-512.png` 추가
+  - `favicon-16x16.png`, `favicon-32x32.png`, `favicon-48x48.png`로 정리
+
+### Evidence
+
+- Install Prompt (cropped): ![Install Prompt Cropped](./evidence/2026-02-21/01-install-prompt-cropped.png)
+- Install Prompt (full): [02-install-prompt-full.png](./evidence/2026-02-21/02-install-prompt-full.png)
+
+### Local Verify
+
+- `icon-192.png` → `192x192`
+- `icon-512.png` → `512x512`
+- `favicon-16x16.png` → `16x16`
+- `favicon-32x32.png` → `32x32`
+- `favicon-48x48.png` → `48x48`
+- `localhost`에서 설치 팝업 노출 확인
+
+### 다음 액션
+
+- [ ] (선택) `apple-touch-icon` 및 `maskable` 아이콘 추가
+- [ ] `favicon.ico` 멀티 사이즈(16/32/48) 정리
+
+→ Day7에서는 PWA 설치 요건 연결과 설치 팝업 확인까지 마무리했다.

@@ -24,6 +24,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
+      <head>
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <meta name="theme-color" content="#ffffff" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

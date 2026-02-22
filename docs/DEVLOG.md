@@ -338,3 +338,45 @@ React `getSnapshot` 경고가 발생.
 - [ ] `favicon.ico` 멀티 사이즈(16/32/48) 정리
 
 → Day7에서는 PWA 설치 요건 연결과 설치 팝업 확인까지 마무리했다.
+
+---
+
+## 2026-02-22
+
+### 요약
+
+- 오프라인 새로고침 시 흰 화면 대신 안내 UI를 보여주는 fallback을 추가했다.
+- Service Worker 등록 및 `navigate` 요청 실패 시 `offline.html`로 fallback 되도록 구성했다.
+
+### 변경 사항
+
+- `src/components/pwa/sw-register.tsx` 추가
+  - 클라이언트에서 Service Worker(`/sw.js`) 등록
+- `src/app/layout.tsx`
+  - `ServiceWorkerRegister` 삽입
+- `public/sw.js` 추가
+  - `navigate` 요청 실패 시 `/offline.html` fallback 응답
+  - fallback은 `request.mode === "navigate"` 조건에서만 처리(문서 요청 한정)
+  - `offline.html`, `manifest`, 앱 아이콘 precache
+- `public/offline.html` 추가
+  - 안내 문구 + `홈으로 돌아가기` + `다시 시도` 버튼
+
+### Evidence
+
+- Offline Fallback UI: ![Offline Fallback UI](./evidence/2026-02-22/01-offline-fallback-ui.png)
+- Service Worker Active (Offline): [02-service-worker-active-offline.png](./evidence/2026-02-22/02-service-worker-active-offline.png)
+
+### Local Verify
+
+- 오프라인 fallback은 SW 설치 이후(=온라인 1회 방문 이후) 동작함을 확인
+- 온라인 상태에서 1회 접속 후 Service Worker 활성화 확인
+- DevTools `Network: Offline`에서 새로고침 시 `offline.html` 안내 UI 노출 확인
+- DevTools `Application > Service workers`에서 활성 상태 확인
+
+### 다음 액션
+
+- [ ] `offline.html` 디자인을 앱 톤에 맞춰 최소 스타일 개선
+- [ ] (선택) fallback 페이지에도 루틴/세션 빠른 진입 링크 추가
+- [ ] Vercel 배포(HTTPS)에서 PWA install/offline 재검증
+
+→ Day8에서는 오프라인 실패 경험을 안내 가능한 상태로 전환해 PWA 사용성을 보강했다.

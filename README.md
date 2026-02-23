@@ -61,6 +61,12 @@ _상세 개발 과정은 DEVLOG에 정리했습니다._
 
 ---
 
+## 🌐 Production URL
+
+- https://workout-pwa-jongha.vercel.app/
+
+---
+
 ## 📓 Development Log
 
 개발 과정 및 트러블슈팅 기록은 아래 문서에 정리되어 있습니다.

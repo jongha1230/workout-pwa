@@ -380,3 +380,30 @@ React `getSnapshot` 경고가 발생.
 - [ ] Vercel 배포(HTTPS)에서 PWA install/offline 재검증
 
 → Day8에서는 오프라인 실패 경험을 안내 가능한 상태로 전환해 PWA 사용성을 보강했다.
+
+---
+
+## 2026-02-23
+
+### 요약
+
+- Production URL 기준으로 PWA 설치/오프라인 검증 기준을 정리했다.
+
+### Deploy Verify
+
+- Production URL: https://workout-pwa-jongha.vercel.app/
+- Install prompt/설치 버튼 확인
+- 온라인 1회 방문 후(=SW 설치 이후) Offline 새로고침 시 `offline.html` 노출 확인
+
+### Evidence
+
+- Install (production): [01-install-production.png](./evidence/2026-02-23/01-install-production.png)
+- Offline fallback (production): [02-offline-fallback-production.png](./evidence/2026-02-23/02-offline-fallback-production.png)
+- SW active: [03-service-worker-active-production.png](./evidence/2026-02-23/03-service-worker-active-production.png)
+
+### 다음 액션
+
+- [x] 배포 환경 캡처 2장(설치/오프라인) 경로를 Evidence에 반영
+- [x] README에 Production URL 1줄 추가
+
+→ Day9에서는 배포 URL 기준 설치/오프라인 검증 항목을 고정했다.

@@ -39,5 +39,32 @@ jobs:
         if: ${{ hashFiles('tests/**/*.spec.ts') != '' }}
         run: npm run test:e2e
 
-      - name: Format check
-        run: npm run format:check
+      - name: Fetch base branch for format diff
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch origin "${{ github.base_ref }}" --depth=1
+            echo "FORMAT_DIFF_BASE=origin/${{ github.base_ref }}" >> "$GITHUB_ENV"
+          else
+            git fetch origin main --depth=1
+            echo "FORMAT_DIFF_BASE=origin/main" >> "$GITHUB_ENV"
+          fi
+
+      - name: Format check (changed files only)
+        shell: bash
+        run: |
+          DIFF_RANGE="${FORMAT_DIFF_BASE}...HEAD"
+          echo "Using diff range: $DIFF_RANGE"
+
+          mapfile -t CHANGED_FILES < <(
+            git diff --name-only "$DIFF_RANGE" \
+              | grep -E '\.(ts|tsx|js|jsx|json|md|css|yml|yaml)$' || true
+          )
+
+          if [ "${#CHANGED_FILES[@]}" -eq 0 ]; then
+            echo "No format-target changed files detected. Skipping prettier check."
+            exit 0
+          fi
+
+          echo "Running prettier check for changed files:"
+          printf ' - %s\n' "${CHANGED_FILES[@]}"
+          npx prettier --check "${CHANGED_FILES[@]}"

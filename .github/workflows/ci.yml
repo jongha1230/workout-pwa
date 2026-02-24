@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -52,7 +54,7 @@ jobs:
       - name: Format check (changed files only)
         shell: bash
         run: |
-          DIFF_RANGE="${FORMAT_DIFF_BASE}...HEAD"
+          DIFF_RANGE="${FORMAT_DIFF_BASE}...${GITHUB_SHA}"
           echo "Using diff range: $DIFF_RANGE"
 
           mapfile -t CHANGED_FILES < <(

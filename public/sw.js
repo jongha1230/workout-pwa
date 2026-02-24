@@ -1,17 +1,25 @@
-const CACHE_NAME = "workout-pwa-offline-v1";
+const CACHE_VERSION = "v2";
+const CORE_CACHE_NAME = `workout-pwa-core-${CACHE_VERSION}`;
+const PAGE_CACHE_NAME = `workout-pwa-pages-${CACHE_VERSION}`;
+const STATIC_CACHE_NAME = `workout-pwa-static-${CACHE_VERSION}`;
+
 const OFFLINE_URL = "/offline.html";
 
 const PRECACHE_URLS = [
+  "/",
+  "/routines",
   OFFLINE_URL,
   "/manifest.webmanifest",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
 ];
 
+const CACHE_NAMES = [CORE_CACHE_NAME, PAGE_CACHE_NAME, STATIC_CACHE_NAME];
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
-      .open(CACHE_NAME)
+      .open(CORE_CACHE_NAME)
       .then((cache) => cache.addAll(PRECACHE_URLS))
       .then(() => self.skipWaiting()),
   );
@@ -24,7 +32,7 @@ self.addEventListener("activate", (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((key) => key !== CACHE_NAME)
+            .filter((key) => !CACHE_NAMES.includes(key))
             .map((key) => caches.delete(key)),
         ),
       )
@@ -32,22 +40,71 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+const getOfflineFallbackResponse = async (request) => {
+  const cachedPage = await caches.match(request, { ignoreSearch: false });
+  if (cachedPage) {
+    return cachedPage;
+  }
+
+  const cachedOfflinePage = await caches.match(OFFLINE_URL);
+  return cachedOfflinePage || Response.error();
+};
+
+const handleNavigateRequest = async (request) => {
+  try {
+    const networkResponse = await fetch(request);
+
+    if (networkResponse?.ok) {
+      const pageCache = await caches.open(PAGE_CACHE_NAME);
+      await pageCache.put(request, networkResponse.clone());
+    }
+
+    return networkResponse;
+  } catch {
+    return getOfflineFallbackResponse(request);
+  }
+};
+
+const handleStaticAssetRequest = async (request) => {
+  const staticCache = await caches.open(STATIC_CACHE_NAME);
+  const cachedResponse = await staticCache.match(request);
+
+  const networkPromise = fetch(request)
+    .then((networkResponse) => {
+      if (networkResponse?.ok) {
+        void staticCache.put(request, networkResponse.clone());
+      }
+      return networkResponse;
+    })
+    .catch(() => undefined);
+
+  if (cachedResponse) {
+    void networkPromise;
+    return cachedResponse;
+  }
+
+  const networkResponse = await networkPromise;
+  return networkResponse || Response.error();
+};
+
 self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") {
+  const { request } = event;
+
+  if (request.method !== "GET") {
     return;
   }
 
-  if (event.request.mode === "navigate") {
-    event.respondWith(
-      (async () => {
-        try {
-          return await fetch(event.request);
-        } catch {
-          const cache = await caches.open(CACHE_NAME);
-          const cachedOfflinePage = await cache.match(OFFLINE_URL);
-          return cachedOfflinePage || Response.error();
-        }
-      })(),
-    );
+  if (request.mode === "navigate") {
+    event.respondWith(handleNavigateRequest(request));
+    return;
+  }
+
+  const url = new URL(request.url);
+  const isStaticAssetRequest =
+    url.origin === self.location.origin &&
+    url.pathname.startsWith("/_next/static/");
+
+  if (isStaticAssetRequest) {
+    event.respondWith(handleStaticAssetRequest(request));
   }
 });

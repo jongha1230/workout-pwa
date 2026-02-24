@@ -69,6 +69,50 @@ test("missing session id shows not-found guidance", async ({ page }) => {
   await expect(page.getByRole("button", { name: "세트 추가" })).toHaveCount(0);
 });
 
+test("offline boot works for home, routines, and existing session", async ({
+  page,
+  context,
+}) => {
+  test.skip(
+    !process.env.CI,
+    "This scenario requires production service worker registration.",
+  );
+
+  await page.goto("/");
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready;
+  });
+  await page.reload();
+
+  await expect
+    .poll(async () =>
+      page.evaluate(() => Boolean(navigator.serviceWorker.controller)),
+    )
+    .toBeTruthy();
+
+  const sessionId = await startSession(page);
+  await addAndSaveTwoSets(page, sessionId);
+
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: "세션 시작" })).toBeVisible();
+
+  await context.setOffline(true);
+
+  await page.reload();
+  await expect(page.getByText("Workout PWA")).toBeVisible();
+  await expect(page.getByRole("button", { name: "세션 시작" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "루틴 보기" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "루틴 추가" })).toBeVisible();
+  await expect(page.getByText("오프라인입니다")).toHaveCount(0);
+
+  await page.goto("/routines");
+  await expect(page.getByRole("heading", { name: "루틴" })).toBeVisible();
+
+  await page.goto(`/session/${sessionId}`);
+  await expect(page.getByText("세트 1")).toBeVisible();
+  await expect(page.getByText("세트 2")).toBeVisible();
+});
+
 const addAndSaveTwoSets = async (
   page: import("@playwright/test").Page,
   sessionId: string,

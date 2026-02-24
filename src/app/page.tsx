@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,10 @@ export default function Home() {
   const router = useRouter();
   const [isStartingSession, setIsStartingSession] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    router.prefetch("/routines");
+  }, [router]);
 
   const handleStartSession = async () => {
     if (isStartingSession) return;

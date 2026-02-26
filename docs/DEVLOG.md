@@ -2,70 +2,70 @@
 
 ## 2026-02-14
 
-### ?붿빟
+### 요약
 
-- ?ㅽ봽?쇱씤 ?곗꽑 湲곕줉 UX瑜??꾪빐 ?몄뀡 ?곹깭???ㅽ듃?뚰겕? 遺꾨━??濡쒖뺄 ?곹깭濡??ㅺ퀎?덈떎.
+- 오프라인 우선 기록 UX를 위해 세션 상태는 네트워크와 분리된 로컬 상태로 설계했다.
 
-### 援ы쁽
+### 구현
 
-- ?명듃 由ъ뒪?몄뿉??留덉?留??명듃 移대뱶 媛뺤“ UI ?곸슜
-- ?명듃 CRUD (異붽?/?섏젙/??젣) ?먮쫫 ?뺣━
-- Zustand 湲곕컲 ?몄뀡 ?곹깭 愿由?援ъ“ 怨좎젙
-- Zod 湲곕컲 ?고????낅젰 寃利??곸슜
-- 理쒓렐媛??먮룞 梨꾩? UX 諛섏쁺
+- 세트 리스트에서 마지막 세트 카드 강조 UI 적용
+- 세트 CRUD (추가/수정/삭제) 흐름 정리
+- Zustand 기반 세션 상태 관리 구조 고정
+- Zod 기반 런타임 입력 검증 적용
+- 최근값 자동 채움 UX 반영
 
-### ?ㅺ퀎 ?먮떒
+### 설계 판단
 
-- ?낅젰 以??곹깭(`draft`)? ?뺤젙 ?곹깭(store)瑜?遺꾨━???????대컢 ?쒖뼱
-- selector ?대? fallback ?앹꽦 ???而댄룷?뚰듃 ?덈꺼 湲곕낯媛?泥섎━濡?李몄“ ?덉젙???좎?
-- 留덉?留??명듃??吏꾪뻾 以??ъ빱?ㅻ줈 媛꾩＜???쒓컖?곸쑝濡?援щ텇
+- 입력 중 상태(`draft`)와 확정 상태(store)를 분리해 저장 타이밍 제어
+- selector 내부 fallback 생성 대신 컴포넌트 레벨 기본값 처리로 참조 안정성 유지
+- 마지막 세트는 진행 중 포커스로 간주해 시각적으로 구분
 
-### ?몃윭釉붿뒋??
+### 트러블슈팅
 
-#### Zustand selector 李몄“ 臾몄젣
+#### Zustand selector 참조 문제
 
-`state.sessions[sessionId] ?? []` ?뺥깭??fallback??留??뚮뜑留덈떎 ?덈줈??諛곗뿴???앹꽦??
-React `getSnapshot` 寃쎄퀬媛 諛쒖깮.
+`state.sessions[sessionId] ?? []` 형태의 fallback이 매 렌더마다 새로운 배열을 생성해
+React `getSnapshot` 경고가 발생.
 
-- selector ?대? fallback ?쒓굅
-- 而댄룷?뚰듃 ?덈꺼?먯꽌 `safeSets` 湲곕낯媛?泥섎━
+- selector 내부 fallback 제거
+- 컴포넌트 레벨에서 `safeSets` 기본값 처리
 
-### 諛곗슫 ??
+### 배운 점
 
-- ?고???寃利앹? ??UX? ?곗씠???덉쭏???숈떆??吏耳쒖???
-- 遺덈???蹂댁옣怨?李몄“ ?덉젙?깆? 蹂꾨룄濡??ㅺ퀎?댁빞 ?쒕떎
-- ?ъ슜???낅젰 ?먮쫫(異붽?/?섏젙/??? ?④퀎 遺꾨━媛 ?좎?蹂댁닔?깆쓣 ?믪씤??
+- 런타임 검증은 폼 UX와 데이터 품질을 동시에 지켜준다
+- 불변성 보장과 참조 안정성은 별도로 설계해야 한다
+- 사용자 입력 흐름(추가/수정/저장) 단계 분리가 유지보수성을 높인다
 
-### ?ㅼ쓬 ?≪뀡
+### 다음 액션
 
-- [ ] ?듭떖 湲곕줉 ?뚮줈???덉젙???댄썑 諛깆뾽/?숆린??怨꾩링 ?ㅺ퀎 珥덉븞 ?묒꽦 ??**?댁썡**
+- [ ] 핵심 기록 플로우 안정화 이후 백업/동기화 계층 설계 초안 작성 → **이월**
 
-??Day1?먯꽌???듭떖 湲곕줉 ?뚮줈?곕? ?덉젙?뷀븯????吏묒쨷?덈떎.
+→ Day1에서는 핵심 기록 플로우를 안정화하는 데 집중했다.
 
 ---
 
 ## 2026-02-15
 
-### ?붿빟
+### 요약
 
-- ESLint/Prettier ignore ?ㅼ젙 ?뺣━?섏뿬 CI ?섍꼍怨?濡쒖뺄 ?섍꼍 李⑥씠 ?쒓굅
+- ESLint/Prettier ignore 설정 정리하여 CI 환경과 로컬 환경 차이 제거
 
-### 紐⑺몴
+### 목표
 
-- [x] GitHub repo ?앹꽦 諛?泥?push
-- [x] GitHub Actions CI 異붽? (`lint` / `typecheck` / `build`)
-- [x] Supabase ?꾩엯 ?? Local-first ?꾨왂 寃곗젙 (README 紐⑺몴? ?뺥빀??寃??
+- [x] GitHub repo 생성 및 첫 push
+- [x] GitHub Actions CI 추가 (`lint` / `typecheck` / `build`)
+- [x] Supabase 도입 전, Local-first 전략 결정 (README 목표와 정합성 검토)
 
-### ?댁쁺 諛??명봽??
+### 운영 및 인프라
 
-- `.github/workflows/ci.yml` 異붽?
-- ?몃━嫄? `push`, `pull_request` on `main`
-- ?ㅽ뻾: Node 20, `npm ci`, `npm run lint`, `npm run typecheck`, `npm run build`
+- `.github/workflows/ci.yml` 추가
+- 트리거: `push`, `pull_request` on `main`
+- 실행: Node 20, `npm ci`, `npm run lint`, `npm run typecheck`, `npm run build`
 
-### CI ?댁뒋
+### CI 이슈
 
-- `format:check` ?ㅽ겕由쏀듃媛 ?먭꺽??諛섏쁺?섏? ?딆븘 CI ?ㅽ뙣 ??package.json 而ㅻ컠?쇰줈 ?닿껐
-- Prettier ?щ㎎ 遺덉씪移섎줈 format check ?ㅽ뙣 ??`npm run format` ?곸슜 ???ъ떎???덉젙
+- `format:check` 스크립트가 원격에 반영되지 않아 CI 실패 → package.json 커밋으로 해결
+- Prettier 포맷 불일치로 format check 실패 → `npm run format` 적용 후 재실행 예정
 
 ### Evidence
 
@@ -76,61 +76,61 @@ React `getSnapshot` 寃쎄퀬媛 諛쒖깮.
 - CI:
   - https://github.com/jongha1230/workout-pwa/actions/runs/22039189528
 - Repro/Verify:
-  1. `npm ci` ?ㅽ뻾 ??`npm run format:check` ?듦낵 ?뺤씤
-  2. `npm run lint`, `npm run typecheck`, `npm run build` ?쒖꽌濡??ㅽ뻾?섍퀬 紐⑤몢 ?듦낵 ?뺤씤
-  3. GitHub Actions CI run?먯꽌 ?숈씪 ?ㅽ겕由쏀듃 ?깃났 ?곹깭 ?뺤씤
+  1. `npm ci` 실행 후 `npm run format:check` 통과 확인
+  2. `npm run lint`, `npm run typecheck`, `npm run build` 순서로 실행하고 모두 통과 확인
+  3. GitHub Actions CI run에서 동일 스크립트 성공 상태 확인
 
-### ?꾨왂 硫붾え
+### 전략 메모
 
-- README 紐⑺몴???ㅽ듃?뚰겕媛 遺덉븞?뺥빐???대룞 湲곕줉???딄린硫????쒕떎.
-- ?곕씪???꾩옱 ?④퀎?먯꽌??Local-first瑜?湲곕낯?쇰줈 ?좎??쒕떎.
-- Supabase???댄썑 ?좏깮???숆린??諛깆뾽 怨꾩링?쇰줈 ?꾩엯?쒕떎.
+- README 목표상 네트워크가 불안정해도 운동 기록이 끊기면 안 된다.
+- 따라서 현재 단계에서는 Local-first를 기본으로 유지한다.
+- Supabase는 이후 선택적 동기화/백업 계층으로 도입한다.
 
-### 由ъ뒪??愿由?
+### 리스크 관리
 
-- Supabase瑜?1?④퀎?먯꽌 諛붾줈 ?꾩엯?섏? ?딄퀬,
-  Local-first 湲곕컲??癒쇱? ?덉젙?뷀빐 ?쒗뭹 紐⑺몴? 湲곗닠 援ъ“??異⑸룎??諛⑹??쒕떎.
+- Supabase를 1단계에서 바로 도입하지 않고,
+  Local-first 기반을 먼저 안정화해 제품 목표와 기술 구조의 충돌을 방지한다.
 
-### 諛곗슫 ??
+### 배운 점
 
-- CI ?ㅽ뙣???遺遺??ㅼ젙 ?꾨씫?대굹 諛섏쁺 ?꾨씫?먯꽌 諛쒖깮?쒕떎.
-- Git rebase? stash??臾댁꽠吏留? ?먮쫫???댄빐?섎㈃ 異⑸텇??蹂듦뎄 媛?ν븯??
-- 肄붾뱶 ?덉쭏 寃뚯씠?몃? 珥덇린??援ъ텞?섎뒗 寃껋씠 以묒슂?섎떎.
+- CI 실패는 대부분 설정 누락이나 반영 누락에서 발생한다.
+- Git rebase와 stash는 무섭지만, 흐름을 이해하면 충분히 복구 가능하다.
+- 코드 품질 게이트를 초기에 구축하는 것이 중요하다.
 
-### ?ㅼ쓬 ?≪뀡
+### 다음 액션
 
-- [x] 泥?push ??GitHub Actions ?ㅽ뻾 ?뺤씤
-- [x] CI 寃곌낵 諛섏쁺??泥댄겕 ?곹깭 ?낅뜲?댄듃
-- [x] IndexedDB(Dexie)濡?sessions ?곸냽???덈줈怨좎묠 蹂듦뎄)
-- [ ] Supabase sync draft ?ㅺ퀎(offline queue) ??**?댁썡**
+- [x] 첫 push 후 GitHub Actions 실행 확인
+- [x] CI 결과 반영해 체크 상태 업데이트
+- [x] IndexedDB(Dexie)로 sessions 영속화(새로고침 복구)
+- [ ] Supabase sync draft 설계(offline queue) → **이월**
 
-??Day2?먯꽌??肄붾뱶 ?덉쭏怨??댁쁺 湲곕컲???뺣━?덈떎.
+→ Day2에서는 코드 품질과 운영 기반을 정리했다.
 
 ---
 
 ## 2026-02-17
 
-### ?붿빟
+### 요약
 
-- Local-first瑜??좎????곹깭?먯꽌 IA(?뺣낫援ъ“) 遺꾨━? ?몄뀡 湲곕줉 UX瑜??뺣━?덈떎.
+- Local-first를 유지한 상태에서 IA(정보구조) 분리와 세션 기록 UX를 정리했다.
 
-### 援ы쁽
+### 구현
 
-- IA 梨낆엫 遺꾨━: Home(?대퉬) / Routines(list,new,detail) / Session(logging)
-- Dexie 湲곕컲 濡쒖뺄 ?곸냽???좎?(`sessions`,`routines`) + repository/store hydration/persist ?곌껐
-- ?몄뀡 ???UX 媛쒖꽑: ??????먮룞 由щ뵒?됱뀡 ?쒓굅, `猷⑦떞?쇰줈` ?대룞 踰꾪듉 ?쒓났, ?좎뒪???좎?
-- ?먮룞 梨꾩? ?뺤콉 ?뺣━: 媛숈? ?몄뀡??吏곸쟾 ?명듃留?seed, 泥??명듃??鍮??낅젰?먯꽌 ?쒖옉
-- ?명듃 ?꾨즺 ?곹깭(checkbox) ???蹂듦뎄 吏??
-  - ?꾨즺 泥댄겕 ???대떦 ?명듃 媛?寃利???利됱떆 ???
-  - `/routines/[id]`?먯꽌??`?꾨즺 x/y` ?붿빟留??몄텧
-- 猷⑦떞/?몄뀡 愿由?UX 蹂닿컯
-  - `/routines`: 移대뱶 ?대┃?쇰줈 ?곸꽭 吏꾩엯 + 猷⑦떞 ??젣
-  - `/routines/[id]`: 猷⑦떞 ??젣 + ?몄뀡 移대뱶 ?대┃ 吏꾩엯 + ?몄뀡 ??젣
-- Playwright E2E瑜?理쒖떊 ?뚮줈?곗뿉 留욊쾶 媛깆떊 諛?CI ?ш?利?
+- IA 책임 분리: Home(내비) / Routines(list,new,detail) / Session(logging)
+- Dexie 기반 로컬 영속화 유지(`sessions`,`routines`) + repository/store hydration/persist 연결
+- 세션 저장 UX 개선: 저장 후 자동 리디렉션 제거, `루틴으로` 이동 버튼 제공, 토스트 유지
+- 자동 채움 정책 정리: 같은 세션의 직전 세트만 seed, 첫 세트는 빈 입력에서 시작
+- 세트 완료 상태(checkbox) 저장/복구 지원
+  - 완료 체크 시 해당 세트 값 검증 후 즉시 저장
+  - `/routines/[id]`에서는 `완료 x/y` 요약만 노출
+- 루틴/세션 관리 UX 보강
+  - `/routines`: 카드 클릭으로 상세 진입 + 루틴 삭제
+  - `/routines/[id]`: 루틴 삭제 + 세션 카드 클릭 진입 + 세션 삭제
+- Playwright E2E를 최신 플로우에 맞게 갱신 및 CI 재검증
 
 ### CI
 
-- ?щ㎎/?뺤쟻 寃??鍮뚮뱶/E2E 湲곗??쇰줈 ?ш?利??꾨즺 (`format:check`, `lint`, `typecheck`, `build`, `test:e2e`)
+- 포맷/정적 검사/빌드/E2E 기준으로 재검증 완료 (`format:check`, `lint`, `typecheck`, `build`, `test:e2e`)
 
 ### Evidence
 
@@ -143,48 +143,48 @@ React `getSnapshot` 寃쎄퀬媛 諛쒖깮.
 - CI:
   - https://github.com/jongha1230/workout-pwa/actions/runs/22101171797
 - Repro/Verify:
-  1. `/routines` ??猷⑦떞 ?좏깮(移대뱶 ?대┃) ??`??猷⑦떞?쇰줈 ?쒖옉`?쇰줈 ?몄뀡 吏꾩엯
-  2. ?명듃 異붽? ??以묐웾/?잛닔 ?낅젰 諛???????덈줈怨좎묠(F5) 諛??ъ쭊??`/session/[id]`) ???숈씪 ?곗씠??蹂듦뎄 ?뺤씤
-  3. ?명듃 `?꾨즺` 泥댄겕 ??`/routines/[id]`?먯꽌 ?꾨즺 ?붿빟(`?꾨즺 x/y`) 諛섏쁺 ?뺤씤
+  1. `/routines` → 루틴 선택(카드 클릭) → `이 루틴으로 시작`으로 세션 진입
+  2. 세트 추가 후 중량/횟수 입력 및 저장 → 새로고침(F5) 및 재진입(`/session/[id]`) 시 동일 데이터 복구 확인
+  3. 세트 `완료` 체크 후 `/routines/[id]`에서 완료 요약(`완료 x/y`) 반영 확인
 
 ### DoD
 
-- [x] ?쇱슦??梨낆엫???붾㈃ 紐⑹쟻??留욊쾶 遺꾨━?섏뿀??
-- [x] ??????몄뀡 ?섏씠吏 stay + 猷⑦떞 ?대룞 UX媛 ?숈옉?쒕떎
-- [x] ?몄뀡 ?먮룞 梨꾩???"媛숈? ?몄뀡 ?대?"濡??쒗븳?섏뿀??
-- [x] ?꾨즺 泥댄겕 ?곹깭媛 ???蹂듦뎄?섍퀬 猷⑦떞 ?곸꽭?먮뒗 ?붿빟?쇰줈留??몄텧?쒕떎
-- [x] ?덈줈怨좎묠/?ъ쭊????濡쒖뺄 蹂듦뎄 ?숈옉???섎룞?쇰줈 ?뺤씤?덈떎
+- [x] 라우팅 책임이 화면 목적에 맞게 분리되었다
+- [x] 저장 후 세션 페이지 stay + 루틴 이동 UX가 동작한다
+- [x] 세션 자동 채움이 "같은 세션 내부"로 제한되었다
+- [x] 완료 체크 상태가 저장/복구되고 루틴 상세에는 요약으로만 노출된다
+- [x] 새로고침/재진입 시 로컬 복구 동작을 수동으로 확인했다
 
-### 諛곗슫 ??
+### 배운 점
 
-- 湲곕뒫 ?뺤옣蹂대떎 ?뺣낫援ъ“(IA) ?ъ젙?ъ씠 ?ъ슜??寃쏀뿕 媛쒖꽑????吏곸젒?곸씤 ?곹뼢??以??
-- ?덉륫 媛?ν븳 ?먮룞 梨꾩? ?뺤콉???쒓린??留롮쓬?앸낫?????믪? UX ?좊ː瑜?留뚮뱺??
-- ????숈옉? ?ъ슜???듭젣 ?섏뿉 ?먮뒗 寃껋씠 ?쇰줈?꾨? ??텣??
+- 기능 확장보다 정보구조(IA) 재정렬이 사용자 경험 개선에 더 직접적인 영향을 준다.
+- 예측 가능한 자동 채움 정책이 “기능 많음”보다 더 높은 UX 신뢰를 만든다.
+- 저장 동작은 사용자 통제 하에 두는 것이 피로도를 낮춘다.
 
-### ?ㅼ쓬 ?≪뀡
+### 다음 액션
 
-- [ ] (?좏깮) persist ?몄텧 debounce ?곸슜(?낅젰 以?怨쇰룄 ???諛⑹?) ??**蹂대쪟**
-- [ ] 猷⑦떞/?몄뀡 ?대쫫 ?뺤콉(湲곕낯 ?쒕ぉ, ?ъ슜??吏??UX) ?뺣━ ??**?댁썡**
-- [ ] Supabase sync draft ?ㅺ퀎(offline queue) ??**?댁썡**
+- [ ] (선택) persist 호출 debounce 적용(입력 중 과도 저장 방지) → **보류**
+- [ ] 루틴/세션 이름 정책(기본 제목, 사용자 지정 UX) 정리 → **이월**
+- [ ] Supabase sync draft 설계(offline queue) → **이월**
 
-??Day3?먯꽌??湲곕뒫 以묒떖 MVP瑜??ъ슜??以묒떖 援ъ“濡??ъ젙?ы뻽??
+→ Day3에서는 기능 중심 MVP를 사용자 중심 구조로 재정렬했다.
 
 ---
 
 ## 2026-02-18
 
-### ?붿빟
+### 요약
 
-- ?쇰컲 ?ъ슜???쒖옉 寃쎈줈?먯꽌 `/session/new`瑜?嫄곗튂吏 ?딅룄濡??뚮줈?곕? 蹂寃쏀뻽??
-- 猷⑦떞 ?곸꽭??`??猷⑦떞?쇰줈 ?쒖옉` ?대┃ ???몄뀡???앹꽦?섍퀬 諛붾줈 `/session/[id]`濡??대룞?쒕떎.
-- Playwright E2E + GIF 湲곕컲 ?ш?利??꾨즺
+- 일반 사용자 시작 경로에서 `/session/new`를 거치지 않도록 플로우를 변경했다.
+- 루틴 상세의 `이 루틴으로 시작` 클릭 시 세션을 생성하고 바로 `/session/[id]`로 이동한다.
+- Playwright E2E + GIF 기반 재검증 완료
 
 ### Evidence
 
-- ?듭떖 利앷굅:
+- 핵심 증거:
   ![Refresh Persist](./evidence/2026-02-18/refresh-persist.gif)
   ![CI E2E Passed](./evidence/2026-02-18/ci-e2e-passed.png)
-- Flow/UI 留곹겕:
+- Flow/UI 링크:
   - [Home CTA](./evidence/2026-02-18/01-home-cta.png)
   - [Routine Detail (empty)](./evidence/2026-02-18/02-routine-detail-empty.png)
   - [Session Editor](./evidence/2026-02-18/03-session-editor-filled.png)
@@ -194,81 +194,81 @@ React `getSnapshot` 寃쎄퀬媛 諛쒖깮.
   - [URL: Routine Detail](./evidence/2026-02-18/07-url-routine-detail.png)
   - [URL: Session Editor](./evidence/2026-02-18/08-url-session-editor.png)
 
-### Repro/Verify (GIF 湲곗?)
+### Repro/Verify (GIF 기준)
 
-1. `/routines`?먯꽌 猷⑦떞 移대뱶瑜??뚮윭 `/routines/{routineId}`濡??대룞?쒕떎.
-2. `??猷⑦떞?쇰줈 ?쒖옉`???뚮윭 `/session/{sessionId}`濡??대룞?쒕떎. (`/session/new` 誘멸꼍??
-3. `?명듃 異붽?`瑜??꾨Ⅴ怨?以묐웾 `60`, ?잛닔 `10`???낅젰????`??????꾨Ⅸ??
-4. ?곷떒 `Saved session successfully` ?좎뒪?몃? ?뺤씤?쒕떎.
-5. `猷⑦떞?쇰줈`瑜??뚮윭 `/routines/{routineId}`濡??뚯븘媛 `??λ맂 ?몄뀡` 移대뱶媛 ?앹꽦?먮뒗吏 ?뺤씤?쒕떎.
-6. `??λ맂 ?몄뀡` 移대뱶瑜??뚮윭 `/session/{sessionId}`濡??ㅼ떆 吏꾩엯??媛?`60`, `10`)???좎??섎뒗吏 ?뺤씤?쒕떎.
+1. `/routines`에서 루틴 카드를 눌러 `/routines/{routineId}`로 이동한다.
+2. `이 루틴으로 시작`을 눌러 `/session/{sessionId}`로 이동한다. (`/session/new` 미경유)
+3. `세트 추가`를 누르고 중량 `60`, 횟수 `10`을 입력한 뒤 `저장`을 누른다.
+4. 상단 `Saved session successfully` 토스트를 확인한다.
+5. `루틴으로`를 눌러 `/routines/{routineId}`로 돌아가 `저장된 세션` 카드가 생성됐는지 확인한다.
+6. `저장된 세션` 카드를 눌러 `/session/{sessionId}`로 다시 진입해 값(`60`, `10`)이 유지되는지 확인한다.
 
-??Day4?먯꽌???몄뀡 ?뚮줈??蹂寃??댄썑, E2E 諛??섎룞 ?ы쁽(GIF)???듯빐 濡쒖뺄 蹂듦뎄 ?숈옉??紐낇솗??寃利앺븯怨?Evidence瑜??뺣━?덈떎.
+→ Day4에서는 세션 플로우 변경 이후, E2E 및 수동 재현(GIF)을 통해 로컬 복구 동작을 명확히 검증하고 Evidence를 정리했다.
 
 ---
 
 ## 2026-02-19
 
-### ?붿빟
+### 요약
 
-- Playwright E2E ?쒖옉?먯쓣 `/session/new`?먯꽌 ??CTA(`/`) 湲곕컲 ?뚮줈?곕줈 ?뺣젹?덈떎.
-- `/session/new` 寃쎈줈??fallback entry濡??좎??섎뒗吏 蹂꾨룄 ?ㅻえ???뚯뒪?몃? 異붽??덈떎.
-- ?듭떖 ?ъ슜??寃쎈줈 ?뚭? 寃利앷낵 fallback 寃쎈줈 媛?⑹꽦 寃利앹쓣 遺꾨━???뚯뒪???좊ː?꾨? ?믪???
+- Playwright E2E 시작점을 `/session/new`에서 홈 CTA(`/`) 기반 플로우로 정렬했다.
+- `/session/new` 경로는 fallback entry로 유지되는지 별도 스모크 테스트를 추가했다.
+- 핵심 사용자 경로 회귀 검증과 fallback 경로 가용성 검증을 분리해 테스트 신뢰도를 높였다.
 
-### 蹂寃??ы빆
+### 변경 사항
 
 - `tests/session-persistence.spec.ts`
-  - `startSession()` ?쒖옉 寃쎈줈瑜?`/`濡?蹂寃?
-  - `new session route remains available as fallback entry` ?뚯뒪??異붽?
+  - `startSession()` 시작 경로를 `/`로 변경
+  - `new session route remains available as fallback entry` 테스트 추가
 
 ### Local Verify
 
-- `npm run test:e2e` ??4 passed
+- `npm run test:e2e` → 4 passed
 
-### 湲곗〈 誘몄셿猷??≪뀡 ?먭?
+### 기존 미완료 액션 점검
 
-- [ ] (02-17) persist debounce ?곸슜 ??**蹂대쪟**
-  - ?꾩옱 ??μ? `submit/?꾨즺泥댄겕/??젣` 以묒떖?대씪 ?낅젰 以?怨쇰룄 ????댁뒋媛 ?ъ? ?딆쓬
-- [ ] (02-17) 猷⑦떞/?몄뀡 ?대쫫 ?뺤콉 ?뺣━ ??**?댁썡**
-  - invalid id 泥섎━ ?뺤콉 ?뺤젙 ?댄썑, 鍮??곹깭/湲곕낯 ?쒕ぉ UX? ?④퍡 ?뺣━ ?덉젙
-- [ ] (02-15, 02-17) Supabase sync draft ?ㅺ퀎 ??**?댁썡**
-  - ?꾩옱 ?④퀎??Local-first 寃利??꾩꽦?꾧? ?곗꽑?대ŉ sync??2李??ㅺ퀎 ??ぉ?쇰줈 遺꾨━
+- [ ] (02-17) persist debounce 적용 → **보류**
+  - 현재 저장은 `submit/완료체크/삭제` 중심이라 입력 중 과도 저장 이슈가 크지 않음
+- [ ] (02-17) 루틴/세션 이름 정책 정리 → **이월**
+  - invalid id 처리 정책 확정 이후, 빈 상태/기본 제목 UX와 함께 정리 예정
+- [ ] (02-15, 02-17) Supabase sync draft 설계 → **이월**
+  - 현재 단계는 Local-first 검증 완성도가 우선이며 sync는 2차 설계 항목으로 분리
 
-### ?ㅼ쓬 ?≪뀡 (?곗꽑?쒖쐞)
+### 다음 액션 (우선순위)
 
-- [x] P0: 猷⑦떞 ?곸꽭(`/routines/[id]`)??`??猷⑦떞?쇰줈 ?쒖옉` 寃쎈줈 E2E 1媛?異붽? (2026-02-20 ?꾨즺)
-- [x] P0: `/session/[id]` invalid id 泥섎━ ?뺤콉 ?뺤젙(404/?덈궡/由щ떎?대젆?? + ?뚯뒪??諛섏쁺 (2026-02-20 ?꾨즺)
-- [x] P1: `src/app/layout.tsx` 硫뷀??곗씠??湲곕낯媛?`Create Next App`) ?꾨줈?앺듃 臾멸뎄濡?援먯껜 (2026-02-20 ?꾨즺)
-- [x] P1: DEVLOG 怨쇨굅 `?ㅼ쓬 ?≪뀡` ??ぉ???곹깭 ?쇰꺼(?꾨즺/蹂대쪟/?댁썡) 諛섏쁺 (2026-02-20 ?꾨즺)
+- [x] P0: 루틴 상세(`/routines/[id]`)의 `이 루틴으로 시작` 경로 E2E 1개 추가 (2026-02-20 완료)
+- [x] P0: `/session/[id]` invalid id 처리 정책 확정(404/안내/리다이렉트) + 테스트 반영 (2026-02-20 완료)
+- [x] P1: `src/app/layout.tsx` 메타데이터 기본값(`Create Next App`) 프로젝트 문구로 교체 (2026-02-20 완료)
+- [x] P1: DEVLOG 과거 `다음 액션` 항목에 상태 라벨(완료/보류/이월) 반영 (2026-02-20 완료)
 
-??Day5?먯꽌???뚯뒪?몃? ?ㅼ젣 ?ъ슜??寃쎈줈??留욎떠 ?뺣젹?섍퀬, 誘몄셿猷?諛깅줈洹몃? ?곗꽑?쒖쐞 湲곗??쇰줈 ?щ텇瑜섑뻽??
+→ Day5에서는 테스트를 실제 사용자 경로에 맞춰 정렬하고, 미완료 백로그를 우선순위 기준으로 재분류했다.
 
 ---
 
 ## 2026-02-20
 
-### ?붿빟
+### 요약
 
-- P0-1: 猷⑦떞 ?곸꽭(`/routines/[id]`)??`??猷⑦떞?쇰줈 ?쒖옉` 寃쎈줈 E2E瑜?異붽??덈떎.
-- P0-2: `/session/[id]` ?묎렐 ??invalid/missing id瑜?援щ텇???덈궡?섍퀬 ?몄쭛 ???몄텧??李⑤떒?덈떎.
-- invalid id, missing id 媛곴컖??????뚭? ?뚯뒪?몃? 異붽??덈떎.
-- P1: `src/app/layout.tsx` 硫뷀??곗씠??湲곕낯媛믪쓣 ?꾨줈?앺듃 臾멸뎄濡?援먯껜?덈떎.
-- P1: DEVLOG 怨쇨굅 `?ㅼ쓬 ?≪뀡` ??ぉ???곹깭 ?쇰꺼(?꾨즺/蹂대쪟/?댁썡)??諛섏쁺?덈떎.
+- P0-1: 루틴 상세(`/routines/[id]`)의 `이 루틴으로 시작` 경로 E2E를 추가했다.
+- P0-2: `/session/[id]` 접근 시 invalid/missing id를 구분해 안내하고 편집 폼 노출을 차단했다.
+- invalid id, missing id 각각에 대한 회귀 테스트를 추가했다.
+- P1: `src/app/layout.tsx` 메타데이터 기본값을 프로젝트 문구로 교체했다.
+- P1: DEVLOG 과거 `다음 액션` 항목에 상태 라벨(완료/보류/이월)을 반영했다.
 
-### 蹂寃??ы빆
+### 변경 사항
 
 - `tests/session-persistence.spec.ts`
-  - `starts a session directly from routine detail` ?뚯뒪??異붽?
-  - `invalid session id shows guidance instead of editable form` ?뚯뒪??異붽?
-  - `missing session id shows not-found guidance` ?뚯뒪??異붽?
+  - `starts a session directly from routine detail` 테스트 추가
+  - `invalid session id shows guidance instead of editable form` 테스트 추가
+  - `missing session id shows not-found guidance` 테스트 추가
 - `src/app/session/[id]/page.tsx`
-  - `SESSION_ID_PATTERN` 湲곕컲 session id ?뺤떇 寃利?異붽?
-  - invalid id/?녿뒗 session id ?묎렐 ???덈궡 移대뱶 ?뚮뜑留?
-  - ?덈궡 ?곹깭?먯꽌 ?명듃 ?낅젰 ??誘몃끂異?泥섎━
+  - `SESSION_ID_PATTERN` 기반 session id 형식 검증 추가
+  - invalid id/없는 session id 접근 시 안내 카드 렌더링
+  - 안내 상태에서 세트 입력 폼 미노출 처리
 - `src/app/layout.tsx`
-  - 硫뷀??곗씠??湲곕낯媛믪쓣 `Workout PWA` / ?꾨줈?앺듃 ?ㅻ챸?쇰줈 援먯껜
+  - 메타데이터 기본값을 `Workout PWA` / 프로젝트 설명으로 교체
 - `docs/DEVLOG.md`
-  - 怨쇨굅 `?ㅼ쓬 ?≪뀡` ??ぉ ?곹깭 ?쇰꺼(?꾨즺/蹂대쪟/?댁썡) ?뺣━
+  - 과거 `다음 액션` 항목 상태 라벨(완료/보류/이월) 정리
 
 ### CI
 
@@ -278,8 +278,8 @@ React `getSnapshot` 寃쎄퀬媛 諛쒖깮.
 
 ### Local Verify
 
-- `npm run typecheck` ??passed
-- `npm run test:e2e` ??7 passed
+- `npm run typecheck` → passed
+- `npm run test:e2e` → 7 passed
 
 ### Evidence
 
@@ -290,33 +290,33 @@ React `getSnapshot` 寃쎄퀬媛 諛쒖깮.
 - PR:
   - https://github.com/jongha1230/workout-pwa/pull/3
 
-### ?ㅼ쓬 ?≪뀡
+### 다음 액션
 
-- [x] P1: `src/app/layout.tsx` 硫뷀??곗씠??湲곕낯媛?`Create Next App`) ?꾨줈?앺듃 臾멸뎄濡?援먯껜 (2026-02-20 ?꾨즺)
-- [x] P1: DEVLOG 怨쇨굅 `?ㅼ쓬 ?≪뀡` ??ぉ???곹깭 ?쇰꺼(?꾨즺/蹂대쪟/?댁썡) 諛섏쁺 (2026-02-20 ?꾨즺)
+- [x] P1: `src/app/layout.tsx` 메타데이터 기본값(`Create Next App`) 프로젝트 문구로 교체 (2026-02-20 완료)
+- [x] P1: DEVLOG 과거 `다음 액션` 항목에 상태 라벨(완료/보류/이월) 반영 (2026-02-20 완료)
 
-??Day6?먯꽌??P0/P1??留덈Т由ы븯怨?CI ?덉젙??format/typecheck/e2e)源뚯? ?뺤씤?덈떎.
+→ Day6에서는 P0/P1을 마무리하고 CI 안정화(format/typecheck/e2e)까지 확인했다.
 
 ---
 
 ## 2026-02-21
 
-### ?붿빟
+### 요약
 
-- PWA ?ㅼ튂 理쒖냼 ?붽굔(`manifest`, `theme-color`, ???꾩씠肄????곌껐?덈떎.
-- ?뚮퉬肄??ㅼ씠諛띿쓣 ?쒖? ?뺥깭(`favicon-16x16`, `favicon-32x32`, `favicon-48x48`)濡??뺣━?덈떎.
-- Chrome?먯꽌 ?ㅼ튂 ?앹뾽 ?몄텧???뺤씤?덈떎.
+- PWA 설치 최소 요건(`manifest`, `theme-color`, 앱 아이콘)을 연결했다.
+- 파비콘 네이밍을 표준 형태(`favicon-16x16`, `favicon-32x32`, `favicon-48x48`)로 정리했다.
+- Chrome에서 설치 팝업 노출을 확인했다.
 
-### 蹂寃??ы빆
+### 변경 사항
 
-- `public/manifest.webmanifest` 異붽?
-  - `start_url`, `display`, `theme_color`, `icons` ?ㅼ젙
+- `public/manifest.webmanifest` 추가
+  - `start_url`, `display`, `theme_color`, `icons` 설정
 - `src/app/layout.tsx`
-  - `<link rel="manifest" href="/manifest.webmanifest" />` 異붽?
-  - `<meta name="theme-color" content="#ffffff" />` 異붽?
+  - `<link rel="manifest" href="/manifest.webmanifest" />` 추가
+  - `<meta name="theme-color" content="#ffffff" />` 추가
 - `public/icons`
-  - `icon-192.png`, `icon-512.png` 異붽?
-  - `favicon-16x16.png`, `favicon-32x32.png`, `favicon-48x48.png`濡??뺣━
+  - `icon-192.png`, `icon-512.png` 추가
+  - `favicon-16x16.png`, `favicon-32x32.png`, `favicon-48x48.png`로 정리
 
 ### Evidence
 
@@ -325,41 +325,41 @@ React `getSnapshot` 寃쎄퀬媛 諛쒖깮.
 
 ### Local Verify
 
-- `icon-192.png` ??`192x192`
-- `icon-512.png` ??`512x512`
-- `favicon-16x16.png` ??`16x16`
-- `favicon-32x32.png` ??`32x32`
-- `favicon-48x48.png` ??`48x48`
-- `localhost`?먯꽌 ?ㅼ튂 ?앹뾽 ?몄텧 ?뺤씤
+- `icon-192.png` → `192x192`
+- `icon-512.png` → `512x512`
+- `favicon-16x16.png` → `16x16`
+- `favicon-32x32.png` → `32x32`
+- `favicon-48x48.png` → `48x48`
+- `localhost`에서 설치 팝업 노출 확인
 
-### ?ㅼ쓬 ?≪뀡
+### 다음 액션
 
-- [ ] (?좏깮) `apple-touch-icon` 諛?`maskable` ?꾩씠肄?異붽?
-- [ ] `favicon.ico` 硫???ъ씠利?16/32/48) ?뺣━
+- [ ] (선택) `apple-touch-icon` 및 `maskable` 아이콘 추가
+- [ ] `favicon.ico` 멀티 사이즈(16/32/48) 정리
 
-??Day7?먯꽌??PWA ?ㅼ튂 ?붽굔 ?곌껐怨??ㅼ튂 ?앹뾽 ?뺤씤源뚯? 留덈Т由ы뻽??
+→ Day7에서는 PWA 설치 요건 연결과 설치 팝업 확인까지 마무리했다.
 
 ---
 
 ## 2026-02-22
 
-### ?붿빟
+### 요약
 
-- ?ㅽ봽?쇱씤 ?덈줈怨좎묠 ?????붾㈃ ????덈궡 UI瑜?蹂댁뿬二쇰뒗 fallback??異붽??덈떎.
-- Service Worker ?깅줉 諛?`navigate` ?붿껌 ?ㅽ뙣 ??`offline.html`濡?fallback ?섎룄濡?援ъ꽦?덈떎.
+- 오프라인 새로고침 시 흰 화면 대신 안내 UI를 보여주는 fallback을 추가했다.
+- Service Worker 등록 및 `navigate` 요청 실패 시 `offline.html`로 fallback 되도록 구성했다.
 
-### 蹂寃??ы빆
+### 변경 사항
 
-- `src/components/pwa/sw-register.tsx` 異붽?
-  - ?대씪?댁뼵?몄뿉??Service Worker(`/sw.js`) ?깅줉
+- `src/components/pwa/sw-register.tsx` 추가
+  - 클라이언트에서 Service Worker(`/sw.js`) 등록
 - `src/app/layout.tsx`
-  - `ServiceWorkerRegister` ?쎌엯
-- `public/sw.js` 異붽?
-  - `navigate` ?붿껌 ?ㅽ뙣 ??`/offline.html` fallback ?묐떟
-  - fallback? `request.mode === "navigate"` 議곌굔?먯꽌留?泥섎━(臾몄꽌 ?붿껌 ?쒖젙)
-  - `offline.html`, `manifest`, ???꾩씠肄?precache
-- `public/offline.html` 異붽?
-  - ?덈궡 臾멸뎄 + `?덉쑝濡??뚯븘媛湲? + `?ㅼ떆 ?쒕룄` 踰꾪듉
+  - `ServiceWorkerRegister` 삽입
+- `public/sw.js` 추가
+  - `navigate` 요청 실패 시 `/offline.html` fallback 응답
+  - fallback은 `request.mode === "navigate"` 조건에서만 처리(문서 요청 한정)
+  - `offline.html`, `manifest`, 앱 아이콘 precache
+- `public/offline.html` 추가
+  - 안내 문구 + `홈으로 돌아가기` + `다시 시도` 버튼
 
 ### Evidence
 
@@ -368,32 +368,32 @@ React `getSnapshot` 寃쎄퀬媛 諛쒖깮.
 
 ### Local Verify
 
-- ?ㅽ봽?쇱씤 fallback? SW ?ㅼ튂 ?댄썑(=?⑤씪??1??諛⑸Ц ?댄썑) ?숈옉?⑥쓣 ?뺤씤
-- ?⑤씪???곹깭?먯꽌 1???묒냽 ??Service Worker ?쒖꽦???뺤씤
-- DevTools `Network: Offline`?먯꽌 ?덈줈怨좎묠 ??`offline.html` ?덈궡 UI ?몄텧 ?뺤씤
-- DevTools `Application > Service workers`?먯꽌 ?쒖꽦 ?곹깭 ?뺤씤
+- 오프라인 fallback은 SW 설치 이후(=온라인 1회 방문 이후) 동작함을 확인
+- 온라인 상태에서 1회 접속 후 Service Worker 활성화 확인
+- DevTools `Network: Offline`에서 새로고침 시 `offline.html` 안내 UI 노출 확인
+- DevTools `Application > Service workers`에서 활성 상태 확인
 
-### ?ㅼ쓬 ?≪뀡
+### 다음 액션
 
-- [ ] `offline.html` ?붿옄?몄쓣 ???ㅼ뿉 留욎떠 理쒖냼 ?ㅽ???媛쒖꽑
-- [ ] (?좏깮) fallback ?섏씠吏?먮룄 猷⑦떞/?몄뀡 鍮좊Ⅸ 吏꾩엯 留곹겕 異붽?
-- [ ] Vercel 諛고룷(HTTPS)?먯꽌 PWA install/offline ?ш?利?
+- [ ] `offline.html` 디자인을 앱 톤에 맞춰 최소 스타일 개선
+- [ ] (선택) fallback 페이지에도 루틴/세션 빠른 진입 링크 추가
+- [ ] Vercel 배포(HTTPS)에서 PWA install/offline 재검증
 
-??Day8?먯꽌???ㅽ봽?쇱씤 ?ㅽ뙣 寃쏀뿕???덈궡 媛?ν븳 ?곹깭濡??꾪솚??PWA ?ъ슜?깆쓣 蹂닿컯?덈떎.
+→ Day8에서는 오프라인 실패 경험을 안내 가능한 상태로 전환해 PWA 사용성을 보강했다.
 
 ---
 
 ## 2026-02-23
 
-### ?붿빟
+### 요약
 
-- Production URL 湲곗??쇰줈 PWA ?ㅼ튂/?ㅽ봽?쇱씤 寃利?湲곗????뺣━?덈떎.
+- Production URL 기준으로 PWA 설치/오프라인 검증 기준을 정리했다.
 
 ### Deploy Verify
 
 - Production URL: https://workout-pwa-jongha.vercel.app/
-- Install prompt/?ㅼ튂 踰꾪듉 ?뺤씤
-- ?⑤씪??1??諛⑸Ц ??=SW ?ㅼ튂 ?댄썑) Offline ?덈줈怨좎묠 ??`offline.html` ?몄텧 ?뺤씤
+- Install prompt/설치 버튼 확인
+- 온라인 1회 방문 후(=SW 설치 이후) Offline 새로고침 시 `offline.html` 노출 확인
 
 ### Evidence
 
@@ -401,42 +401,42 @@ React `getSnapshot` 寃쎄퀬媛 諛쒖깮.
 - Offline fallback (production): [02-offline-fallback-production.png](./evidence/2026-02-23/02-offline-fallback-production.png)
 - SW active: [03-service-worker-active-production.png](./evidence/2026-02-23/03-service-worker-active-production.png)
 
-### ?ㅼ쓬 ?≪뀡
+### 다음 액션
 
-- [x] 諛고룷 ?섍꼍 罹≪쿂 2???ㅼ튂/?ㅽ봽?쇱씤) 寃쎈줈瑜?Evidence??諛섏쁺
-- [x] README??Production URL 1以?異붽?
+- [x] 배포 환경 캡처 2장(설치/오프라인) 경로를 Evidence에 반영
+- [x] README에 Production URL 1줄 추가
 
-??Day9?먯꽌??諛고룷 URL 湲곗? ?ㅼ튂/?ㅽ봽?쇱씤 寃利???ぉ??怨좎젙?덈떎.
+→ Day9에서는 배포 URL 기준 설치/오프라인 검증 항목을 고정했다.
 
 ---
 
 ## 2026-02-24
 
-### ?붿빟
+### 요약
 
-- `offline.html` ?덈궡 以묒떖 fallback?먯꽌, ?⑤씪??1??諛⑸Ц ?????몄씠 ?ㅽ봽?쇱씤?먯꽌???⑤룄濡?SW 罹먯떆 ?꾨왂???뺤옣?덈떎.
-- ?ㅽ봽?쇱씤 蹂댁옣 踰붿쐞???듭떖 3?붾㈃(`/`, `/routines`, `/session/{id}`??湲곗〈 ????몄뀡 議고쉶)?쇰줈 ?쒗븳?덈떎.
+- `offline.html` 안내 중심 fallback에서, 온라인 1회 방문 후 앱 셸이 오프라인에서도 뜨도록 SW 캐시 전략을 확장했다.
+- 오프라인 보장 범위는 핵심 3화면(`/`, `/routines`, `/session/{id}`의 기존 저장 세션 조회)으로 제한했다.
 
-### 蹂寃??ы빆
+### 변경 사항
 
 - `src/components/pwa/sw-register.tsx`
-  - `NODE_ENV === "production"`?먯꽌留?Service Worker ?깅줉
+  - `NODE_ENV === "production"`에서만 Service Worker 등록
 - `public/sw.js`
-  - `navigate` ?붿껌? network-first + 臾몄꽌 罹먯떆 fallback
-  - ?뺤쟻 ?먯궛? `/_next/static/*` ?붿껌留?stale-while-revalidate ?곸슜
-  - 罹먯떆 踰꾩쟾 遺꾨━(`core/pages/static`) 諛?activate ??援щ쾭??罹먯떆 ?뺣━
-  - install ??`/`, `/routines`, `/offline.html`, `manifest`, ?꾩씠肄?precache
+  - `navigate` 요청은 network-first + 문서 캐시 fallback
+  - 정적 자산은 `/_next/static/*` 요청만 stale-while-revalidate 적용
+  - 캐시 버전 분리(`core/pages/static`) 및 activate 시 구버전 캐시 정리
+  - install 시 `/`, `/routines`, `/offline.html`, `manifest`, 아이콘 precache
 - `src/app/page.tsx`
-  - `/routines` prefetch 異붽?(?⑤씪??1??諛⑸Ц ???듭떖 ?붾㈃ 以鍮?蹂닿컯)
+  - `/routines` prefetch 추가(온라인 1회 방문 시 핵심 화면 준비 보강)
 - `tests/session-persistence.spec.ts`
-  - ?ㅽ봽?쇱씤 遺???뚭? E2E 1媛?異붽?
+  - 오프라인 부팅 회귀 E2E 1개 추가
 
 ### Verify
 
-- ?ㅽ봽?쇱씤 ?숈옉? SW ?ㅼ튂 ?댄썑(=?⑤씪??1??諛⑸Ц ?댄썑) 寃利앺뻽??
-- Offline + ?덈줈怨좎묠 ????????`Workout PWA`, `?몄뀡 ?쒖옉`, `猷⑦떞 蹂닿린`)???몄텧?⑥쓣 ?뺤씤?덈떎.
-- ?ㅽ봽?쇱씤?먯꽌 `/routines` ?붾㈃ ?몄텧???뺤씤?덈떎.
-- ?ㅽ봽?쇱씤?먯꽌 `/session/{id}`??湲곗〈 ????몄뀡 議고쉶留?蹂댁옣?섍퀬, ?좉퇋 ?앹꽦/??μ? 踰붿쐞?먯꽌 ?쒖쇅?덈떎.
+- 오프라인 동작은 SW 설치 이후(=온라인 1회 방문 이후) 검증했다.
+- Offline + 새로고침 시 홈 앱 셸(`Workout PWA`, `세션 시작`, `루틴 보기`)이 노출됨을 확인했다.
+- 오프라인에서 `/routines` 화면 노출을 확인했다.
+- 오프라인에서 `/session/{id}`는 기존 저장 세션 조회만 보장하고, 신규 생성/저장은 범위에서 제외했다.
 
 ### Evidence
 
@@ -444,16 +444,20 @@ React `getSnapshot` 寃쎄퀬媛 諛쒖깮.
 - Routines offline: [02-routines-offline.png](./evidence/2026-02-24/02-routines-offline.png)
 - Routine detail offline: [03-routine-detail-offline.png](./evidence/2026-02-24/03-routine-detail-offline.png)
 - Existing session offline: [04-session-existing-offline.png](./evidence/2026-02-24/04-session-existing-offline.png)
-- (異붽? 利앷굅) Save while offline: [05-session-save-offline.png](./evidence/2026-02-24/05-session-save-offline.png)
+- (추가 증거) Save while offline: [05-session-save-offline.png](./evidence/2026-02-24/05-session-save-offline.png)
 
-### ?ㅼ쓬 ?≪뀡
+### 다음 액션
 
-- [x] 濡쒖뺄 湲곗? Evidence 4????猷⑦떞/猷⑦떞?곸꽭/湲곗〈?몄뀡) 諛섏쁺
-- [ ] 諛고룷 URL?먯꽌 2026-02-24 Evidence ?숆린???좏깮)
-- [ ] CI 湲곗?(`lint`, `typecheck`, `build`, `test:e2e`, `format:check`) ?ш?利?
-- [ ] ?ㅽ봽?쇱씤 ?좉퇋 ?깅줉/???蹂댁옣 ?ㅼ퐫???먯엵/?숆린???ы븿) 遺꾨━ ?ㅺ퀎
+- [x] 로컬 기준 Evidence 4장(홈/루틴/루틴상세/기존세션) 반영
+- [ ] 배포 URL에서 2026-02-24 Evidence 동기화(선택)
+- [ ] CI 기준(`lint`, `typecheck`, `build`, `test:e2e`, `format:check`) 재검증
+- [ ] 오프라인 신규 등록/저장 보장 스코프(큐잉/동기화 포함) 분리 설계
 
+<<<<<<< docs/fix-devlog-utf8-20260226
+→ Day10에서는 offline 안내 단계에서 핵심 화면 오프라인 실행 단계로 확장하고, 회귀 테스트를 추가했다.
+=======
 ??Day10?먯꽌??offline ?덈궡 ?④퀎?먯꽌 ?듭떖 ?붾㈃ ?ㅽ봽?쇱씤 ?ㅽ뻾 ?④퀎濡??뺤옣?섍퀬, ?뚭? ?뚯뒪?몃? 異붽??덈떎.
+>>>>>>> main
 
 ---
 

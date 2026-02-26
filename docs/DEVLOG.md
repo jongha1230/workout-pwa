@@ -454,3 +454,33 @@ React `getSnapshot` 寃쎄퀬媛 諛쒖깮.
 - [ ] ?ㅽ봽?쇱씤 ?좉퇋 ?깅줉/???蹂댁옣 ?ㅼ퐫???먯엵/?숆린???ы븿) 遺꾨━ ?ㅺ퀎
 
 ??Day10?먯꽌??offline ?덈궡 ?④퀎?먯꽌 ?듭떖 ?붾㈃ ?ㅽ봽?쇱씤 ?ㅽ뻾 ?④퀎濡??뺤옣?섍퀬, ?뚭? ?뚯뒪?몃? 異붽??덈떎.
+
+---
+
+## 2026-02-26
+
+### 요약
+
+- 오늘은 기능 확장 대신 포트폴리오 마감 정리(문서/증거 정합성)에 집중했다.
+- PR 범위를 문서(`README.md`, `docs/DEVLOG.md`)와 Evidence 이미지로 고정했다.
+
+### 범위 고정
+
+- 포함: `README.md`, `docs/DEVLOG.md`, `docs/evidence/2026-02-23/*`, `docs/evidence/2026-02-24/*`
+- 제외(주말 트랙): `.github/workflows/ci.yml`, `public/sw.js`, `src/*`, `tests/*`, `.cursor/*`
+
+### Verify
+
+- [x] `npm run lint`
+- [x] `npm run typecheck`
+- [x] `npm run build`
+- [x] `CI=1 npm run test:e2e` (8 passed)
+- [x] `2026-02-23`, `2026-02-24` Evidence 경로 정합성 확인
+
+### 다음 액션
+
+- [ ] `offline.html` 디자인을 앱 톤에 맞춰 최소 스타일 개선 (주말 예정)
+- [ ] (선택) fallback 페이지에도 루틴/세션 빠른 진입 링크 추가 (주말 예정)
+- [ ] 오프라인 신규 등록/저장 보장 스코프(큐잉/동기화 포함) 분리 설계 (이월)
+
+→ Day11에서는 기능 추가를 보류하고 포트폴리오 제출 관점에서 문서/검증 산출물의 완결성을 우선 마무리했다.

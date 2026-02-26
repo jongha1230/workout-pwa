@@ -380,3 +380,107 @@ React `getSnapshot` 경고가 발생.
 - [ ] Vercel 배포(HTTPS)에서 PWA install/offline 재검증
 
 → Day8에서는 오프라인 실패 경험을 안내 가능한 상태로 전환해 PWA 사용성을 보강했다.
+
+---
+
+## 2026-02-23
+
+### 요약
+
+- Production URL 기준으로 PWA 설치/오프라인 검증 기준을 정리했다.
+
+### Deploy Verify
+
+- Production URL: https://workout-pwa-jongha.vercel.app/
+- Install prompt/설치 버튼 확인
+- 온라인 1회 방문 후(=SW 설치 이후) Offline 새로고침 시 `offline.html` 노출 확인
+
+### Evidence
+
+- Install (production): [01-install-production.png](./evidence/2026-02-23/01-install-production.png)
+- Offline fallback (production): [02-offline-fallback-production.png](./evidence/2026-02-23/02-offline-fallback-production.png)
+- SW active: [03-service-worker-active-production.png](./evidence/2026-02-23/03-service-worker-active-production.png)
+
+### 다음 액션
+
+- [x] 배포 환경 캡처 2장(설치/오프라인) 경로를 Evidence에 반영
+- [x] README에 Production URL 1줄 추가
+
+→ Day9에서는 배포 URL 기준 설치/오프라인 검증 항목을 고정했다.
+
+---
+
+## 2026-02-24
+
+### 요약
+
+- `offline.html` 안내 중심 fallback에서, 온라인 1회 방문 후 앱 셸이 오프라인에서도 뜨도록 SW 캐시 전략을 확장했다.
+- 오프라인 보장 범위는 핵심 3화면(`/`, `/routines`, `/session/{id}`의 기존 저장 세션 조회)으로 제한했다.
+
+### 변경 사항
+
+- `src/components/pwa/sw-register.tsx`
+  - `NODE_ENV === "production"`에서만 Service Worker 등록
+- `public/sw.js`
+  - `navigate` 요청은 network-first + 문서 캐시 fallback
+  - 정적 자산은 `/_next/static/*` 요청만 stale-while-revalidate 적용
+  - 캐시 버전 분리(`core/pages/static`) 및 activate 시 구버전 캐시 정리
+  - install 시 `/`, `/routines`, `/offline.html`, `manifest`, 아이콘 precache
+- `src/app/page.tsx`
+  - `/routines` prefetch 추가(온라인 1회 방문 시 핵심 화면 준비 보강)
+- `tests/session-persistence.spec.ts`
+  - 오프라인 부팅 회귀 E2E 1개 추가
+
+### Verify
+
+- 오프라인 동작은 SW 설치 이후(=온라인 1회 방문 이후) 검증했다.
+- Offline + 새로고침 시 홈 앱 셸(`Workout PWA`, `세션 시작`, `루틴 보기`)이 노출됨을 확인했다.
+- 오프라인에서 `/routines` 화면 노출을 확인했다.
+- 오프라인에서 `/session/{id}`는 기존 저장 세션 조회만 보장하고, 신규 생성/저장은 범위에서 제외했다.
+
+### Evidence
+
+- Home offline app shell: [01-home-offline-app-shell.png](./evidence/2026-02-24/01-home-offline-app-shell.png)
+- Routines offline: [02-routines-offline.png](./evidence/2026-02-24/02-routines-offline.png)
+- Routine detail offline: [03-routine-detail-offline.png](./evidence/2026-02-24/03-routine-detail-offline.png)
+- Existing session offline: [04-session-existing-offline.png](./evidence/2026-02-24/04-session-existing-offline.png)
+- (추가 증거) Save while offline: [05-session-save-offline.png](./evidence/2026-02-24/05-session-save-offline.png)
+
+### 다음 액션
+
+- [x] 로컬 기준 Evidence 4장(홈/루틴/루틴상세/기존세션) 반영
+- [ ] 배포 URL에서 2026-02-24 Evidence 동기화(선택)
+- [ ] CI 기준(`lint`, `typecheck`, `build`, `test:e2e`, `format:check`) 재검증
+- [ ] 오프라인 신규 등록/저장 보장 스코프(큐잉/동기화 포함) 분리 설계
+
+→ Day10에서는 offline 안내 단계에서 핵심 화면 오프라인 실행 단계로 확장하고, 회귀 테스트를 추가했다.
+
+---
+
+## 2026-02-26
+
+### 요약
+
+- 오늘은 기능 확장 대신 포트폴리오 마감 정리(문서/증거 정합성)에 집중했다.
+- PR 범위를 문서(`README.md`, `docs/DEVLOG.md`)와 Evidence 이미지로 고정했다.
+
+### 범위 고정
+
+- 포함: `README.md`, `docs/DEVLOG.md`, `docs/evidence/2026-02-23/*`, `docs/evidence/2026-02-24/*`
+- 제외(주말 트랙): `.github/workflows/ci.yml`, `public/sw.js`, `src/*`, `tests/*`, `.cursor/*`
+
+### Verify
+
+- [x] `npm run lint`
+- [x] `npm run typecheck`
+- [x] `npm run build`
+- [x] `CI=1 npm run test:e2e` (7 passed)
+- [x] `2026-02-23`, `2026-02-24` Evidence 경로 정합성 확인
+
+### 다음 액션
+
+- [ ] `offline.html` 디자인을 앱 톤에 맞춰 최소 스타일 개선 (주말 예정)
+- [ ] (선택) fallback 페이지에도 루틴/세션 빠른 진입 링크 추가 (주말 예정)
+- [ ] 오프라인 신규 등록/저장 보장 스코프(큐잉/동기화 포함) 분리 설계 (이월)
+
+→ Day11에서는 기능 추가를 보류하고 포트폴리오 제출 관점에서 문서/검증 산출물의 완결성을 우선 마무리했다.

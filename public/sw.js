@@ -4,11 +4,14 @@ const PAGE_CACHE_NAME = `workout-pwa-pages-${CACHE_VERSION}`;
 const STATIC_CACHE_NAME = `workout-pwa-static-${CACHE_VERSION}`;
 
 const OFFLINE_URL = "/offline.html";
+const SESSION_SHELL_FALLBACK_URL =
+  "/session/11111111-1111-1111-1111-111111111111";
 
 const PRECACHE_URLS = [
   "/",
   "/routines",
   OFFLINE_URL,
+  SESSION_SHELL_FALLBACK_URL,
   "/manifest.webmanifest",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
@@ -44,6 +47,14 @@ const getOfflineFallbackResponse = async (request) => {
   const cachedPage = await caches.match(request, { ignoreSearch: false });
   if (cachedPage) {
     return cachedPage;
+  }
+
+  const requestUrl = new URL(request.url);
+  if (requestUrl.pathname.startsWith("/session/")) {
+    const cachedSessionShell = await caches.match(SESSION_SHELL_FALLBACK_URL);
+    if (cachedSessionShell) {
+      return cachedSessionShell;
+    }
   }
 
   const cachedOfflinePage = await caches.match(OFFLINE_URL);

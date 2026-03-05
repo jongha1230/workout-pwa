@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 
 import { SetInputSchema } from "@/entities/model/session/model/set.schema";
 import { getRoutine } from "@/entities/routine/repo/routine.repo";
-import { getSession } from "@/entities/session/repo/session.repo";
+import {
+  createSession,
+  getSession,
+} from "@/entities/session/repo/session.repo";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,6 +20,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { consumePendingSessionId } from "@/lib/pending-session";
 import { cn } from "@/lib/utils";
 import { useSessionStore, type SessionSet } from "@/store/session.store";
 
@@ -30,6 +34,7 @@ const SESSION_ID_PATTERN =
 
 export default function SessionDetailPage() {
   const { id: sessionId } = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
 
   const setsFromStore = useSessionStore((state) => state.sessions[sessionId]);
   const hydrateSession = useSessionStore((state) => state.hydrateSession);
@@ -53,6 +58,7 @@ export default function SessionDetailPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const safeSets = setsFromStore ?? [];
+  const bootstrapRequested = searchParams.get("bootstrap") === "1";
 
   useEffect(() => {
     if (!sessionId) return;
@@ -78,6 +84,27 @@ export default function SessionDetailPage() {
       try {
         const currentSession = await getSession(sessionId);
         if (!currentSession) {
+          const isOfflineSessionBootstrap =
+            typeof navigator !== "undefined" && navigator.onLine === false;
+          const shouldBootstrapSession =
+            consumePendingSessionId(sessionId) ||
+            bootstrapRequested ||
+            isOfflineSessionBootstrap;
+
+          if (shouldBootstrapSession) {
+            await createSession({
+              id: sessionId,
+              routineId: null,
+            });
+            await hydrateSession(sessionId);
+            if (!cancelled) {
+              setSessionTitle("빠른 세션");
+              setSessionDescription("루틴 없이 바로 기록하는 세션입니다.");
+              setRoutineLinkHref("/routines");
+            }
+            return;
+          }
+
           if (!cancelled) {
             setLoadErrorMessage("세션을 찾을 수 없습니다.");
           }
@@ -121,7 +148,7 @@ export default function SessionDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [hydrateSession, sessionId]);
+  }, [bootstrapRequested, hydrateSession, sessionId]);
 
   const handleAddSet = () => {
     if (!sessionId) return;
@@ -245,7 +272,7 @@ export default function SessionDetailPage() {
     setErrorMessage(null);
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!sessionId) return;
 
@@ -284,9 +311,16 @@ export default function SessionDetailPage() {
       });
     }
 
-    replaceSets(sessionId, nextSets);
-    setErrorMessage(null);
-    toast.success("Saved session successfully");
+    try {
+      await replaceSets(sessionId, nextSets);
+      setErrorMessage(null);
+      toast.success("Saved session successfully");
+    } catch (error) {
+      console.error("Failed to save session.", error);
+      const message = "세션 저장에 실패했습니다. 다시 시도해 주세요.";
+      setErrorMessage(message);
+      toast.error(message);
+    }
   };
 
   if (!sessionId) {

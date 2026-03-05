@@ -35,14 +35,12 @@ export type SessionStore = {
     setId: string,
     options?: { persist?: boolean },
   ) => void;
-  replaceSets: (sessionId: string, sets: SessionSet[]) => void;
+  replaceSets: (sessionId: string, sets: SessionSet[]) => Promise<void>;
 };
 
 export const useSessionStore = create<SessionStore>((set, get) => {
-  const persistSessionSets = (sessionId: string, sets: SessionSet[]) => {
-    void upsertSessionSets(sessionId, sets).catch((error: unknown) => {
-      console.error("Failed to persist session sets.", error);
-    });
+  const persistSessionSets = async (sessionId: string, sets: SessionSet[]) => {
+    await upsertSessionSets(sessionId, sets);
   };
 
   return {
@@ -80,7 +78,9 @@ export const useSessionStore = create<SessionStore>((set, get) => {
         },
       }));
       if (shouldPersist) {
-        persistSessionSets(sessionId, next);
+        void persistSessionSets(sessionId, next).catch((error: unknown) => {
+          console.error("Failed to persist session sets.", error);
+        });
       }
 
       return setId;
@@ -98,7 +98,9 @@ export const useSessionStore = create<SessionStore>((set, get) => {
           [sessionId]: next,
         },
       }));
-      persistSessionSets(sessionId, next);
+      void persistSessionSets(sessionId, next).catch((error: unknown) => {
+        console.error("Failed to persist session sets.", error);
+      });
     },
     removeSet: (sessionId, setId, options) => {
       const prev = get().sessions[sessionId] ?? [];
@@ -112,10 +114,12 @@ export const useSessionStore = create<SessionStore>((set, get) => {
         },
       }));
       if (shouldPersist) {
-        persistSessionSets(sessionId, next);
+        void persistSessionSets(sessionId, next).catch((error: unknown) => {
+          console.error("Failed to persist session sets.", error);
+        });
       }
     },
-    replaceSets: (sessionId, sets) => {
+    replaceSets: async (sessionId, sets) => {
       const next = cloneSets(sets);
 
       set((state) => ({
@@ -124,7 +128,7 @@ export const useSessionStore = create<SessionStore>((set, get) => {
           [sessionId]: next,
         },
       }));
-      persistSessionSets(sessionId, next);
+      await persistSessionSets(sessionId, next);
     },
   };
 });

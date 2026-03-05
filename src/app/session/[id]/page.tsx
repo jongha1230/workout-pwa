@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 
 import { SetInputSchema } from "@/entities/model/session/model/set.schema";
@@ -33,8 +33,10 @@ const SESSION_ID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default function SessionDetailPage() {
-  const { id: sessionId } = useParams<{ id: string }>();
-  const searchParams = useSearchParams();
+  const { id: paramSessionId } = useParams<{ id?: string }>();
+  const pathname = usePathname();
+  const sessionIdFromPathname = pathname.match(/^\/session\/([^/?#]+)/)?.[1];
+  const sessionId = sessionIdFromPathname ?? paramSessionId ?? "";
 
   const setsFromStore = useSessionStore((state) => state.sessions[sessionId]);
   const hydrateSession = useSessionStore((state) => state.hydrateSession);
@@ -58,7 +60,6 @@ export default function SessionDetailPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const safeSets = setsFromStore ?? [];
-  const bootstrapRequested = searchParams.get("bootstrap") === "1";
 
   useEffect(() => {
     if (!sessionId) return;
@@ -84,12 +85,7 @@ export default function SessionDetailPage() {
       try {
         const currentSession = await getSession(sessionId);
         if (!currentSession) {
-          const isOfflineSessionBootstrap =
-            typeof navigator !== "undefined" && navigator.onLine === false;
-          const shouldBootstrapSession =
-            consumePendingSessionId(sessionId) ||
-            bootstrapRequested ||
-            isOfflineSessionBootstrap;
+          const shouldBootstrapSession = consumePendingSessionId(sessionId);
 
           if (shouldBootstrapSession) {
             await createSession({
@@ -148,7 +144,7 @@ export default function SessionDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [bootstrapRequested, hydrateSession, sessionId]);
+  }, [hydrateSession, sessionId]);
 
   const handleAddSet = () => {
     if (!sessionId) return;

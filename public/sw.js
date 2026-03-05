@@ -51,7 +51,16 @@ const getOfflineFallbackResponse = async (request) => {
 
   const requestUrl = new URL(request.url);
   if (requestUrl.pathname.startsWith("/session/")) {
-    const cachedSessionShell = await caches.match(SESSION_SHELL_FALLBACK_URL);
+    const cachedSessionPage = await caches.match(requestUrl.pathname, {
+      ignoreSearch: true,
+    });
+    if (cachedSessionPage) {
+      return cachedSessionPage;
+    }
+
+    const cachedSessionShell = await caches.match(SESSION_SHELL_FALLBACK_URL, {
+      ignoreSearch: true,
+    });
     if (cachedSessionShell) {
       return cachedSessionShell;
     }

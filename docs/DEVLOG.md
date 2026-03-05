@@ -484,3 +484,48 @@ React `getSnapshot` 경고가 발생.
 - [ ] 오프라인 신규 등록/저장 보장 스코프(큐잉/동기화 포함) 분리 설계 (이월)
 
 → Day11에서는 기능 추가를 보류하고 포트폴리오 제출 관점에서 문서/검증 산출물의 완결성을 우선 마무리했다.
+
+---
+
+## 2026-03-05
+
+### 요약
+
+- 오프라인 핵심 플로우(홈 -> 세션 시작 -> 세트 추가/저장 -> 동일 세션 재조회) 보장을 구현했다.
+- 오프라인 동적 세션 진입 시 세션 셸 fallback 경로를 고정해 회귀를 줄였다.
+- 오프라인 시작/저장/재조회 시나리오 E2E 1개를 추가했다.
+
+### 변경 사항
+
+- `public/sw.js`
+  - 세션 셸 fallback 경로(`/session/11111111-1111-1111-1111-111111111111`) precache/응답 추가
+- `src/app/page.tsx`
+  - `/session/new`, 세션 셸 경로 prefetch 추가
+  - 오프라인 시작 시 세션 셸 id를 사용해 시작 경로 안정화
+- `src/app/session/[id]/page.tsx`
+  - pending/offline bootstrap 처리 추가
+  - 저장 핸들러 async 처리 + 저장 실패 토스트 처리
+- `src/store/session.store.ts`
+  - `replaceSets`를 Promise 기반으로 변경
+- `tests/session-persistence.spec.ts`
+  - `offline can start, save, and reload a new session from home` 추가
+  - offline existing-session 회귀 테스트 안정화
+
+### Verify
+
+- [x] `npm run lint`
+- [x] `npm run typecheck`
+- [x] `npm run build`
+- [x] `CI=1 npm run test:e2e` (9 passed)
+- [x] `npx prettier --check <changed-files>`
+
+### Evidence
+
+- Offline create/save: [01-offline-create-save.png](./evidence/2026-03-05/01-offline-create-save.png)
+- Offline session reload: [02-offline-session-reload.png](./evidence/2026-03-05/02-offline-session-reload.png)
+
+### 참고
+
+- PR: https://github.com/jongha1230/workout-pwa/pull/10 (merged)
+
+→ Day12에서는 오프라인 안내 단계를 넘어, 핵심 기록 플로우의 오프라인 저장/재조회 보장을 코드와 회귀 테스트로 닫았다.

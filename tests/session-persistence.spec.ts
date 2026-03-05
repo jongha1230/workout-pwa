@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 const startSession = async (page: import("@playwright/test").Page) => {
   await page.goto("/");
   await page.getByRole("button", { name: "세션 시작" }).click();
-  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}(\?bootstrap=1)?$/);
 
   const match = page.url().match(/\/session\/([^/?#]+)/);
   if (!match) {
@@ -49,7 +49,7 @@ test("new session route remains available as fallback entry", async ({
   await expect(page).toHaveURL(/\/session\/new$/);
 
   await page.locator("button").first().click();
-  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}(\?bootstrap=1)?$/);
 });
 
 test("invalid session id shows guidance instead of editable form", async ({
@@ -92,6 +92,9 @@ test("offline boot works for home, routines, and existing session", async ({
 
   const sessionId = await startSession(page);
   await addAndSaveTwoSets(page, sessionId);
+  await page.goto(`/session/${sessionId}`);
+  await expect(page.getByText("세트 1")).toBeVisible();
+  await expect(page.getByText("세트 2")).toBeVisible();
 
   await page.goto("/");
   await expect(page.getByRole("button", { name: "세션 시작" })).toBeVisible();
@@ -113,6 +116,56 @@ test("offline boot works for home, routines, and existing session", async ({
   await expect(page.getByText("세트 2")).toBeVisible();
 });
 
+test("offline can start, save, and reload a new session from home", async ({
+  page,
+  context,
+}) => {
+  test.skip(
+    !process.env.CI,
+    "This scenario requires production service worker registration.",
+  );
+
+  await page.goto("/");
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready;
+  });
+  await page.reload();
+
+  await expect
+    .poll(async () =>
+      page.evaluate(() => Boolean(navigator.serviceWorker.controller)),
+    )
+    .toBeTruthy();
+
+  await startSession(page);
+  await expect(page.getByRole("button", { name: "세트 추가" })).toBeVisible();
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: "세션 시작" })).toBeVisible();
+
+  await context.setOffline(true);
+
+  await page.getByRole("button", { name: "세션 시작" }).click();
+  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}(\?bootstrap=1)?$/);
+  await expect(page.getByText("오프라인입니다")).toHaveCount(0);
+
+  const weightInput = page.getByPlaceholder("중량 (예: 60)").first();
+  const repsInput = page.getByPlaceholder("횟수 (예: 10)").first();
+
+  await page.getByRole("button", { name: "세트 추가" }).click();
+  await expect(page.getByPlaceholder("중량 (예: 60)")).toHaveCount(1);
+  await expect(page.getByPlaceholder("횟수 (예: 10)")).toHaveCount(1);
+  await weightInput.fill("50");
+  await repsInput.fill("10");
+
+  await page.getByRole("button", { name: "저장" }).click();
+  await expect(page.getByText("Saved session successfully")).toBeVisible();
+
+  await context.setOffline(false);
+  await page.reload();
+  await expect(weightInput).toHaveValue("50");
+  await expect(repsInput).toHaveValue("10");
+});
+
 const addAndSaveTwoSets = async (
   page: import("@playwright/test").Page,
   sessionId: string,
@@ -131,7 +184,9 @@ const addAndSaveTwoSets = async (
   await repsInputs.nth(1).fill("8");
 
   await page.getByRole("button", { name: "저장" }).click();
-  await expect(page).toHaveURL(new RegExp(`/session/${sessionId}$`));
+  await expect(page).toHaveURL(
+    new RegExp(`/session/${sessionId}(\\?bootstrap=1)?$`),
+  );
 };
 
 test("session persists across reload and re-entry", async ({
@@ -169,7 +224,9 @@ test("set updates and deletes persist to indexeddb", async ({ page }) => {
   await page.getByRole("button", { name: "삭제" }).nth(1).click();
 
   await page.getByRole("button", { name: "저장" }).click();
-  await expect(page).toHaveURL(new RegExp(`/session/${sessionId}$`));
+  await expect(page).toHaveURL(
+    new RegExp(`/session/${sessionId}(\\?bootstrap=1)?$`),
+  );
 
   await page.goto(`/session/${sessionId}`);
   await expect(page.getByPlaceholder("중량 (예: 60)")).toHaveCount(1);

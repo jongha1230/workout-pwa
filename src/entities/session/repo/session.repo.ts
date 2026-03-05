@@ -1,4 +1,5 @@
 import { db, type SessionRecord, type SessionSet } from "@/lib/db";
+import { appendOutboxEvent } from "@/lib/sync/outbox.repo";
 
 type CreateSessionInput = {
   id: string;
@@ -31,6 +32,17 @@ export async function createSession(
   };
 
   await db.sessions.put(record);
+  await appendOutboxEvent({
+    entityType: "session",
+    entityId: record.id,
+    op: "create",
+    payload: {
+      id: record.id,
+      routineId: record.routineId,
+      createdAt: record.createdAt,
+      sets: [],
+    },
+  });
   return record;
 }
 
@@ -93,6 +105,17 @@ export async function upsertSessionSets(
     };
 
     await db.sessions.put(record);
+    await appendOutboxEvent({
+      entityType: "session",
+      entityId: record.id,
+      op: "create",
+      payload: {
+        id: record.id,
+        routineId: record.routineId,
+        createdAt: record.createdAt,
+        sets: nextSets,
+      },
+    });
     return record;
   }
 
@@ -103,9 +126,28 @@ export async function upsertSessionSets(
   };
 
   await db.sessions.put(nextRecord);
+  await appendOutboxEvent({
+    entityType: "session",
+    entityId: nextRecord.id,
+    op: "update",
+    payload: {
+      id: nextRecord.id,
+      routineId: nextRecord.routineId,
+      updatedAt: nextRecord.updatedAt,
+      sets: nextSets,
+    },
+  });
   return nextRecord;
 }
 
 export async function deleteSession(sessionId: string): Promise<void> {
   await db.sessions.delete(sessionId);
+  await appendOutboxEvent({
+    entityType: "session",
+    entityId: sessionId,
+    op: "delete",
+    payload: {
+      id: sessionId,
+    },
+  });
 }

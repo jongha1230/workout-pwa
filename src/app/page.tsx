@@ -12,15 +12,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  createSession,
-  getSession,
-} from "@/entities/session/repo/session.repo";
+import { createSession } from "@/entities/session/repo/session.repo";
 import { setPendingSessionId } from "@/lib/pending-session";
 
 const SESSION_SHELL_PREFETCH_PATH =
   "/session/11111111-1111-1111-1111-111111111111";
-const OFFLINE_SESSION_SHELL_ID = "11111111-1111-1111-1111-111111111111";
 
 export default function Home() {
   const router = useRouter();
@@ -36,23 +32,16 @@ export default function Home() {
   const handleStartSession = async () => {
     if (isStartingSession) return;
 
-    const shouldUseOfflineSessionShell =
-      typeof navigator !== "undefined" && navigator.onLine === false;
-    const sessionId = shouldUseOfflineSessionShell
-      ? OFFLINE_SESSION_SHELL_ID
-      : crypto.randomUUID();
+    const sessionId = crypto.randomUUID();
 
     setIsStartingSession(true);
     setErrorMessage(null);
 
     try {
-      const existingSession = await getSession(sessionId);
-      if (!existingSession) {
-        await createSession({
-          id: sessionId,
-          routineId: null,
-        });
-      }
+      await createSession({
+        id: sessionId,
+        routineId: null,
+      });
       setPendingSessionId(sessionId);
       router.push(`/session/${sessionId}`);
     } catch {

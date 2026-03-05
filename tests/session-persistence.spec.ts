@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 const startSession = async (page: import("@playwright/test").Page) => {
   await page.goto("/");
   await page.getByRole("button", { name: "세션 시작" }).click();
-  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}(\?bootstrap=1)?$/);
+  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/);
 
   const match = page.url().match(/\/session\/([^/?#]+)/);
   if (!match) {
@@ -49,7 +49,7 @@ test("new session route remains available as fallback entry", async ({
   await expect(page).toHaveURL(/\/session\/new$/);
 
   await page.locator("button").first().click();
-  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}(\?bootstrap=1)?$/);
+  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/);
 });
 
 test("invalid session id shows guidance instead of editable form", async ({
@@ -116,7 +116,7 @@ test("offline boot works for home, routines, and existing session", async ({
   await expect(page.getByText("세트 2")).toBeVisible();
 });
 
-test("offline can start, save, and reload a new session from home", async ({
+test("offline starts create isolated sessions without id collision", async ({
   page,
   context,
 }) => {
@@ -145,25 +145,52 @@ test("offline can start, save, and reload a new session from home", async ({
   await context.setOffline(true);
 
   await page.getByRole("button", { name: "세션 시작" }).click();
-  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}(\?bootstrap=1)?$/);
+  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/);
+  const firstSessionMatch = page.url().match(/\/session\/([^/?#]+)/);
+  if (!firstSessionMatch) {
+    throw new Error("Failed to extract first offline session id.");
+  }
+  const firstSessionId = firstSessionMatch[1];
   await expect(page.getByText("오프라인입니다")).toHaveCount(0);
 
-  const weightInput = page.getByPlaceholder("중량 (예: 60)").first();
-  const repsInput = page.getByPlaceholder("횟수 (예: 10)").first();
+  await page.getByRole("button", { name: "세트 추가" }).click();
+  await page.getByPlaceholder("중량 (예: 60)").first().fill("50");
+  await page.getByPlaceholder("횟수 (예: 10)").first().fill("10");
+  await page.getByRole("button", { name: "저장" }).click();
+  await expect(page.getByText("Saved session successfully")).toBeVisible();
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "세션 시작" }).click();
+  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/);
+  const secondSessionMatch = page.url().match(/\/session\/([^/?#]+)/);
+  if (!secondSessionMatch) {
+    throw new Error("Failed to extract second offline session id.");
+  }
+  const secondSessionId = secondSessionMatch[1];
+  expect(secondSessionId).not.toBe(firstSessionId);
+  await expect(page.getByText("오프라인입니다")).toHaveCount(0);
 
   await page.getByRole("button", { name: "세트 추가" }).click();
-  await expect(page.getByPlaceholder("중량 (예: 60)")).toHaveCount(1);
-  await expect(page.getByPlaceholder("횟수 (예: 10)")).toHaveCount(1);
-  await weightInput.fill("50");
-  await repsInput.fill("10");
-
+  await page.getByPlaceholder("중량 (예: 60)").first().fill("70");
+  await page.getByPlaceholder("횟수 (예: 10)").first().fill("8");
   await page.getByRole("button", { name: "저장" }).click();
   await expect(page.getByText("Saved session successfully")).toBeVisible();
 
   await context.setOffline(false);
-  await page.reload();
-  await expect(weightInput).toHaveValue("50");
-  await expect(repsInput).toHaveValue("10");
+
+  await page.goto(`/session/${firstSessionId}`);
+  await expect(page.getByPlaceholder("중량 (예: 60)").first()).toHaveValue(
+    "50",
+  );
+  await expect(page.getByPlaceholder("횟수 (예: 10)").first()).toHaveValue(
+    "10",
+  );
+
+  await page.goto(`/session/${secondSessionId}`);
+  await expect(page.getByPlaceholder("중량 (예: 60)").first()).toHaveValue(
+    "70",
+  );
+  await expect(page.getByPlaceholder("횟수 (예: 10)").first()).toHaveValue("8");
 });
 
 const addAndSaveTwoSets = async (
@@ -184,9 +211,8 @@ const addAndSaveTwoSets = async (
   await repsInputs.nth(1).fill("8");
 
   await page.getByRole("button", { name: "저장" }).click();
-  await expect(page).toHaveURL(
-    new RegExp(`/session/${sessionId}(\\?bootstrap=1)?$`),
-  );
+  await expect(page.getByText("Saved session successfully")).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`/session/${sessionId}$`));
 };
 
 test("session persists across reload and re-entry", async ({
@@ -224,9 +250,7 @@ test("set updates and deletes persist to indexeddb", async ({ page }) => {
   await page.getByRole("button", { name: "삭제" }).nth(1).click();
 
   await page.getByRole("button", { name: "저장" }).click();
-  await expect(page).toHaveURL(
-    new RegExp(`/session/${sessionId}(\\?bootstrap=1)?$`),
-  );
+  await expect(page).toHaveURL(new RegExp(`/session/${sessionId}$`));
 
   await page.goto(`/session/${sessionId}`);
   await expect(page.getByPlaceholder("중량 (예: 60)")).toHaveCount(1);
@@ -249,5 +273,5 @@ test("blank inputs are not saved and show validation error", async ({
   );
 
   await page.reload();
-  await expect(page.getByText("세트를 추가해 주세요.")).toBeVisible();
+  await expect(page.getByText("세트를 추가해 주세요")).toBeVisible();
 });

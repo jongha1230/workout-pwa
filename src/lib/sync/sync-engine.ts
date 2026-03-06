@@ -6,7 +6,7 @@ import {
   markOutboxEventSynced,
   resetProcessingOutboxEvents,
 } from "@/lib/sync/outbox.repo";
-import { NoopSyncAdapter } from "@/lib/sync/noop-adapter";
+import { createSyncAdapter } from "@/lib/sync/adapter-factory";
 import type { SyncAdapter } from "@/lib/sync/types";
 
 type SyncEngineState = "idle" | "flushing" | "backoff";
@@ -117,7 +117,7 @@ class SyncEngine {
   }
 }
 
-const syncEngine = new SyncEngine(new NoopSyncAdapter());
+const syncEngine = new SyncEngine(createSyncAdapter());
 
 export const startSyncEngine = (): void => {
   syncEngine.start();

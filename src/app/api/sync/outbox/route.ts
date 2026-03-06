@@ -8,6 +8,7 @@ type SyncApiResponse =
   | { ok: false; retryable: boolean; error: string };
 
 const DEFAULT_SYNC_TABLE = "sync_events";
+const MAX_SYNC_REQUEST_BYTES = 64 * 1024;
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,9 +44,61 @@ const createResponse = (
   status: number,
 ): NextResponse<SyncApiResponse> => NextResponse.json(body, { status });
 
+const isSameOriginRequest = (request: Request): boolean => {
+  const originHeader = request.headers.get("origin");
+  if (!originHeader) {
+    return true;
+  }
+
+  try {
+    const requestOrigin = new URL(request.url).origin;
+    return originHeader === requestOrigin;
+  } catch {
+    return false;
+  }
+};
+
 export async function POST(
   request: Request,
 ): Promise<NextResponse<SyncApiResponse>> {
+  const isRouteEnabled = process.env.SYNC_ROUTE_ENABLED?.trim() === "true";
+  if (!isRouteEnabled) {
+    return createResponse(
+      {
+        ok: false,
+        retryable: false,
+        error: "Sync route is disabled.",
+      },
+      503,
+    );
+  }
+
+  if (!isSameOriginRequest(request)) {
+    return createResponse(
+      {
+        ok: false,
+        retryable: false,
+        error: "Cross-origin sync request is not allowed.",
+      },
+      403,
+    );
+  }
+
+  const contentLength = Number(request.headers.get("content-length") ?? "0");
+  if (
+    Number.isFinite(contentLength) &&
+    contentLength > MAX_SYNC_REQUEST_BYTES
+  ) {
+    return createResponse(
+      {
+        ok: false,
+        retryable: false,
+        error: "Sync request payload is too large.",
+      },
+      413,
+    );
+  }
+
   const body = (await request.json().catch(() => null)) as unknown;
   if (!isValidOutboxEvent(body)) {
     return createResponse(

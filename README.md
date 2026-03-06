@@ -75,7 +75,9 @@ _상세 개발 과정은 DEVLOG에 정리했습니다._
   - `NEXT_PUBLIC_SUPABASE_URL`
   - `SUPABASE_SERVICE_ROLE_KEY`
   - `SUPABASE_SYNC_TABLE` (기본 `sync_events`)
+  - `SYNC_ROUTE_ENABLED=true` (명시 활성화 시에만 `/api/sync/outbox` 처리)
 - Supabase 테이블 SQL: `docs/supabase/sync_events.sql`
+- 보안 기본값: `SYNC_ROUTE_ENABLED=false`, 키 누출 시 즉시 rotate 권장
 
 ---
 

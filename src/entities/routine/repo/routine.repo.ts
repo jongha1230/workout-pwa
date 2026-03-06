@@ -1,4 +1,5 @@
 import { db, type RoutineRecord } from "@/lib/db";
+import { appendOutboxEvent } from "@/lib/sync/outbox.repo";
 
 type CreateRoutineInput = {
   name: string;
@@ -29,6 +30,17 @@ export async function createRoutine(
   };
 
   await db.routines.put(record);
+  await appendOutboxEvent({
+    entityType: "routine",
+    entityId: record.id,
+    op: "create",
+    payload: {
+      id: record.id,
+      name: record.name,
+      description: record.description,
+      createdAt: record.createdAt,
+    },
+  });
   return record;
 }
 
@@ -59,6 +71,17 @@ export async function updateRoutine(
   };
 
   await db.routines.put(nextRecord);
+  await appendOutboxEvent({
+    entityType: "routine",
+    entityId: nextRecord.id,
+    op: "update",
+    payload: {
+      id: nextRecord.id,
+      name: nextRecord.name,
+      description: nextRecord.description,
+      updatedAt: nextRecord.updatedAt,
+    },
+  });
   return nextRecord;
 }
 
@@ -66,5 +89,13 @@ export async function deleteRoutine(id: string): Promise<void> {
   await db.transaction("rw", db.routines, db.sessions, async () => {
     await db.routines.delete(id);
     await db.sessions.where("routineId").equals(id).delete();
+  });
+  await appendOutboxEvent({
+    entityType: "routine",
+    entityId: id,
+    op: "delete",
+    payload: {
+      id,
+    },
   });
 }

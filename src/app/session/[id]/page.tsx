@@ -272,10 +272,11 @@ export default function SessionDetailPage() {
     event.preventDefault();
     if (!sessionId) return;
 
+    const currentSets = useSessionStore.getState().sessions[sessionId] ?? [];
     const nextSets: SessionSet[] = [];
 
-    for (let index = 0; index < safeSets.length; index += 1) {
-      const item = safeSets[index];
+    for (let index = 0; index < currentSets.length; index += 1) {
+      const item = currentSets[index];
       const draft = draftBySetId[item.id];
       const weightValue = draft?.weight ?? String(item.weight);
       const repsValue = draft?.reps ?? String(item.reps);

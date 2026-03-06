@@ -31,6 +31,113 @@ const createRoutineAndOpenDetail = async (
   return match[1];
 };
 
+const readOutboxStatusCounts = async (
+  page: import("@playwright/test").Page,
+): Promise<{
+  pending: number;
+  processing: number;
+  failed: number;
+  synced: number;
+}> =>
+  page.evaluate(() => {
+    const initialCounts = {
+      pending: 0,
+      processing: 0,
+      failed: 0,
+      synced: 0,
+    };
+
+    return new Promise((resolve, reject) => {
+      const openRequest = indexedDB.open("workout-pwa");
+
+      openRequest.onerror = () => {
+        reject(new Error("Failed to open indexeddb."));
+      };
+
+      openRequest.onsuccess = () => {
+        const database = openRequest.result;
+        if (!database.objectStoreNames.contains("sync_outbox")) {
+          resolve(initialCounts);
+          return;
+        }
+
+        const transaction = database.transaction("sync_outbox", "readonly");
+        const store = transaction.objectStore("sync_outbox");
+        const getAllRequest = store.getAll();
+
+        getAllRequest.onerror = () => {
+          reject(new Error("Failed to load outbox events."));
+        };
+
+        getAllRequest.onsuccess = () => {
+          const events = getAllRequest.result as Array<{
+            status?: "pending" | "processing" | "failed" | "synced";
+          }>;
+          const counts = events.reduce(
+            (acc, event) => {
+              if (event.status === "pending") acc.pending += 1;
+              if (event.status === "processing") acc.processing += 1;
+              if (event.status === "failed") acc.failed += 1;
+              if (event.status === "synced") acc.synced += 1;
+              return acc;
+            },
+            { ...initialCounts },
+          );
+
+          resolve(counts);
+        };
+      };
+    });
+  });
+
+const readSessionSnapshot = async (
+  page: import("@playwright/test").Page,
+  sessionId: string,
+): Promise<{
+  setCount: number;
+  firstWeight: string | null;
+  firstReps: string | null;
+}> =>
+  page.evaluate(async (id) => {
+    return new Promise((resolve, reject) => {
+      const openRequest = indexedDB.open("workout-pwa");
+
+      openRequest.onerror = () => {
+        reject(new Error("Failed to open indexeddb."));
+      };
+
+      openRequest.onsuccess = () => {
+        const database = openRequest.result;
+        const transaction = database.transaction("sessions", "readonly");
+        const store = transaction.objectStore("sessions");
+        const getRequest = store.get(id);
+
+        getRequest.onerror = () => {
+          reject(new Error("Failed to load session snapshot."));
+        };
+
+        getRequest.onsuccess = () => {
+          const session = getRequest.result as
+            | { sets?: Array<{ weight: number; reps: number }> }
+            | undefined;
+
+          const firstSet = session?.sets?.[0];
+          resolve({
+            setCount: session?.sets?.length ?? 0,
+            firstWeight:
+              firstSet && typeof firstSet.weight === "number"
+                ? String(firstSet.weight)
+                : null,
+            firstReps:
+              firstSet && typeof firstSet.reps === "number"
+                ? String(firstSet.reps)
+                : null,
+          });
+        };
+      };
+    });
+  }, sessionId);
+
 test("starts a session directly from routine detail", async ({ page }) => {
   const routineId = await createRoutineAndOpenDetail(page);
 
@@ -193,6 +300,61 @@ test("offline starts create isolated sessions without id collision", async ({
   await expect(page.getByPlaceholder("횟수 (예: 10)").first()).toHaveValue("8");
 });
 
+test("outbox transitions from pending to synced after online recovery", async ({
+  page,
+  context,
+}) => {
+  test.skip(
+    !process.env.CI,
+    "This scenario requires production service worker registration.",
+  );
+
+  await page.goto("/");
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready;
+  });
+  await page.reload();
+
+  await expect
+    .poll(async () =>
+      page.evaluate(() => Boolean(navigator.serviceWorker.controller)),
+    )
+    .toBeTruthy();
+
+  await context.setOffline(true);
+
+  await page.getByRole("button", { name: "세션 시작" }).click();
+  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/);
+  await page.getByRole("button", { name: "세트 추가" }).click();
+  await page.getByPlaceholder("중량 (예: 60)").first().fill("40");
+  await page.getByPlaceholder("횟수 (예: 10)").first().fill("12");
+  await page.getByRole("button", { name: "저장" }).click();
+  await expect(page.getByText("Saved session successfully")).toBeVisible();
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "세션 시작" }).click();
+  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/);
+  await page.getByRole("button", { name: "세트 추가" }).click();
+  await page.getByPlaceholder("중량 (예: 60)").first().fill("55");
+  await page.getByPlaceholder("횟수 (예: 10)").first().fill("9");
+  await page.getByRole("button", { name: "저장" }).click();
+  await expect(page.getByText("Saved session successfully")).toBeVisible();
+
+  const pendingCounts = await readOutboxStatusCounts(page);
+  expect(pendingCounts.pending).toBeGreaterThanOrEqual(4);
+  expect(pendingCounts.synced).toBe(0);
+
+  await context.setOffline(false);
+  await page.reload();
+
+  await expect
+    .poll(async () => (await readOutboxStatusCounts(page)).pending)
+    .toBe(0);
+  await expect
+    .poll(async () => (await readOutboxStatusCounts(page)).synced)
+    .toBeGreaterThanOrEqual(4);
+});
+
 const addAndSaveTwoSets = async (
   page: import("@playwright/test").Page,
   sessionId: string,
@@ -248,16 +410,18 @@ test("set updates and deletes persist to indexeddb", async ({ page }) => {
   await expect(weightInputs).toHaveCount(2);
   await weightInputs.nth(0).fill("65");
   await page.getByRole("button", { name: "삭제" }).nth(1).click();
+  await expect(page.getByPlaceholder("중량 (예: 60)")).toHaveCount(1);
 
   await page.getByRole("button", { name: "저장" }).click();
+  await expect(page.getByText("Saved session successfully")).toBeVisible();
   await expect(page).toHaveURL(new RegExp(`/session/${sessionId}$`));
 
-  await page.goto(`/session/${sessionId}`);
-  await expect(page.getByPlaceholder("중량 (예: 60)")).toHaveCount(1);
-  await expect(page.getByPlaceholder("횟수 (예: 10)")).toHaveCount(1);
-  await expect(page.getByPlaceholder("중량 (예: 60)").first()).toHaveValue(
-    "65",
-  );
+  await expect
+    .poll(async () => (await readSessionSnapshot(page, sessionId)).setCount)
+    .toBe(1);
+  await expect
+    .poll(async () => (await readSessionSnapshot(page, sessionId)).firstWeight)
+    .toBe("65");
 });
 
 test("blank inputs are not saved and show validation error", async ({

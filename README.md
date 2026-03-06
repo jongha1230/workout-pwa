@@ -67,6 +67,18 @@ _상세 개발 과정은 DEVLOG에 정리했습니다._
 
 ---
 
+## 🔄 Outbox Sync (Optional)
+
+- 기본값: `NEXT_PUBLIC_SYNC_TRANSPORT=noop` (외부 전송 비활성)
+- 실연동: `NEXT_PUBLIC_SYNC_TRANSPORT=api`
+- 서버 ENV:
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `SUPABASE_SERVICE_ROLE_KEY`
+  - `SUPABASE_SYNC_TABLE` (기본 `sync_events`)
+- Supabase 테이블 SQL: `docs/supabase/sync_events.sql`
+
+---
+
 ## 📓 Development Log
 
 개발 과정 및 트러블슈팅 기록은 아래 문서에 정리되어 있습니다.

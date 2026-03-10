@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { consumePendingSessionId } from "@/lib/pending-session";
+import { flushSyncEngine } from "@/lib/sync/sync-engine";
 import { cn } from "@/lib/utils";
 import { useSessionStore, type SessionSet } from "@/store/session.store";
 
@@ -310,6 +311,7 @@ export default function SessionDetailPage() {
 
     try {
       await replaceSets(sessionId, nextSets);
+      await flushSyncEngine();
       setErrorMessage(null);
       toast.success("Saved session successfully");
     } catch (error) {

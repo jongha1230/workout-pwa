@@ -44,15 +44,14 @@ const createResponse = (
   status: number,
 ): NextResponse<SyncApiResponse> => NextResponse.json(body, { status });
 
-const isLegacyJwtKey = (value: string): boolean => value.split(".").length === 3;
+const isLegacyJwtKey = (value: string): boolean =>
+  value.split(".").length === 3;
 
 const createSupabaseAuthHeaders = (apiKey: string): HeadersInit => {
   const headers: HeadersInit = {
     apikey: apiKey,
   };
 
-  // New Supabase secret keys are verified by the API gateway via `apikey`.
-  // Legacy JWT-based service_role keys still need the bearer token path.
   if (isLegacyJwtKey(apiKey)) {
     headers.Authorization = `Bearer ${apiKey}`;
   }
@@ -175,6 +174,7 @@ export async function POST(
       status: response.status,
       body: upstreamError,
     });
+
     return createResponse(
       {
         ok: false,

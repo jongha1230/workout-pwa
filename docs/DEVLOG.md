@@ -1,5 +1,66 @@
 # Development Log
 
+## 2026-03-16
+
+### 요약
+
+- 간판 포트폴리오 프로젝트로 보이도록 전체 브랜딩을 다시 정리했다.
+- 기존의 밝은 카드형 UI를 버리고, 어두운 유리 패널과 네온 포인트 중심의 `tactical glass` 톤으로 재설계했다.
+- 특히 세션 화면을 단순 폼이 아닌 `session console` 구조로 바꿔 제품 밀도와 시각적 신뢰를 높였다.
+
+### 구현
+
+- 공통 시각 시스템 재설계
+  - `globals.css` 디자인 토큰, 배경, 그리드, glass utility 재구성
+  - `button`, `card`, `input`, `page-shell` 공통 스타일을 전술 HUD 톤으로 교체
+  - 디스플레이 폰트를 `Rajdhani` 기반으로 변경
+- 핵심 화면 리디자인
+  - 홈: 최근 세션 재개, 루틴 빠른 시작, 첫 진입 CTA를 강조한 dashboard 구성
+  - 루틴 목록: 카드에서 바로 세션 시작 가능한 library 형태로 정리
+  - 루틴 상세: 편집 패널과 저장된 세션 목록의 밀도 조정
+  - 루틴 생성: builder 느낌의 입력 화면으로 재정리
+  - 세션 상세: command bar + set block + session pulse + input rules 구조로 재편
+- PWA 셸 톤 통일
+  - `manifest.webmanifest`, `offline.html` 색상/표현을 메인 제품 톤과 일치시킴
+- 문서 갱신
+  - README를 제품 소개 문서 중심으로 다시 작성
+  - 최신 스크린샷과 검증 결과를 상단에 노출
+
+### 설계 판단
+
+- 포트폴리오에서는 “무난한 예쁨”보다 제품 인상과 일관된 시각 언어가 더 중요하다.
+- 운동 기록 앱은 산뜻한 SaaS보다 밀도 높은 전술 UI 쪽이 목적과 더 잘 맞는다.
+- 세션 화면은 가장 자주 보게 되는 핵심 장면이므로, 카드 나열보다 편집 콘솔처럼 보여야 한다.
+
+### Evidence
+
+- [Home Dashboard](./evidence/2026-03-16/01-home-dashboard.png)
+- [Routine Library](./evidence/2026-03-16/02-routines-direct-start.png)
+- [Routine Detail Edit](./evidence/2026-03-16/03-routine-detail-edit.png)
+- [Session Editor](./evidence/2026-03-16/04-session-editor-filled.png)
+- [Routine Builder](./evidence/2026-03-16/05-routine-builder.png)
+- [Validation Error](./evidence/2026-03-16/06-validation-error.png)
+
+### Repro / Verify
+
+1. `npm run lint`
+2. `npm run typecheck`
+3. `npm run build`
+4. `$env:PLAYWRIGHT_PORT='3100'; npm run test:e2e`
+
+결과:
+
+- `8 passed`
+- `3 skipped`  
+  CI 전용 offline/service worker 시나리오
+
+### 배운 점
+
+- 브랜딩은 색만 바꾸는 작업이 아니라, 정보 우선순위와 화면 구조를 다시 정하는 일이다.
+- 포트폴리오용 제품은 “무슨 기능이 있나”보다 “이 사람이 제품 감각과 마감력을 어디까지 끌고 가는가”가 먼저 보인다.
+
+---
+
 ## 2026-02-14
 
 ### 요약

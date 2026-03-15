@@ -6,12 +6,16 @@
     <title>오프라인 안내</title>
     <style>
       :root {
-        color-scheme: light;
-        --bg: #f5f5f5;
-        --card: #ffffff;
-        --text: #171717;
-        --muted: #525252;
-        --border: #e5e5e5;
+        color-scheme: dark;
+        --bg: #061014;
+        --bg-accent: rgba(90, 255, 218, 0.22);
+        --bg-accent-2: rgba(255, 198, 86, 0.12);
+        --card: rgba(10, 18, 20, 0.84);
+        --text: #f3f7f6;
+        --muted: rgba(243, 247, 246, 0.58);
+        --border: rgba(255, 255, 255, 0.12);
+        --button: linear-gradient(180deg, rgba(111, 255, 220, 0.28), rgba(18, 91, 76, 0.72));
+        --button-text: #f7fffc;
       }
 
       * {
@@ -24,23 +28,40 @@
         display: grid;
         place-items: center;
         padding: 16px;
+        background:
+          radial-gradient(circle at top left, var(--bg-accent) 0, transparent 32%),
+          radial-gradient(circle at top right, var(--bg-accent-2) 0, transparent 26%),
+          linear-gradient(180deg, #030709 0%, var(--bg) 100%);
         font-family:
           "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-        background: var(--bg);
         color: var(--text);
       }
 
       .card {
         width: min(100%, 520px);
         background: var(--card);
+        backdrop-filter: blur(24px);
         border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 20px;
+        border-radius: 28px;
+        padding: 28px;
+        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.34);
+      }
+
+      .eyebrow {
+        margin: 0 0 12px;
+        font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        color: rgba(111, 255, 220, 0.82);
       }
 
       h1 {
-        margin: 0 0 10px;
-        font-size: 22px;
+        margin: 0 0 12px;
+        font-size: 34px;
+        line-height: 1;
+        letter-spacing: -0.06em;
       }
 
       p {
@@ -50,33 +71,42 @@
       }
 
       .actions {
-        margin-top: 18px;
+        margin-top: 22px;
         display: flex;
         gap: 10px;
         flex-wrap: wrap;
       }
 
       .btn {
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 10px 14px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 16px;
+        padding: 12px 18px;
         font-size: 14px;
+        font-weight: 600;
         color: var(--text);
-        background: #fff;
+        background: rgba(255, 255, 255, 0.04);
+        box-shadow: 0 14px 34px rgba(0, 0, 0, 0.18);
         text-decoration: none;
         cursor: pointer;
+      }
+
+      .btn.primary {
+        color: var(--button-text);
+        background: var(--button);
+        border-color: rgba(111, 255, 220, 0.18);
       }
     </style>
   </head>
   <body>
     <main class="card">
+      <p class="eyebrow">Offline fallback</p>
       <h1>오프라인입니다</h1>
       <p>
         기록은 로컬에 저장됩니다. 온라인 연결 시 동기화(옵션)를 진행할 수
         있습니다.
       </p>
       <div class="actions">
-        <a class="btn" href="/">홈으로 돌아가기</a>
+        <a class="btn primary" href="/">홈으로 돌아가기</a>
         <button class="btn" type="button" id="retry-button">다시 시도</button>
       </div>
     </main>

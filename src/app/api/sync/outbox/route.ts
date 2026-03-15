@@ -9,6 +9,7 @@ type SyncApiResponse =
 
 const DEFAULT_SYNC_TABLE = "sync_events";
 const MAX_SYNC_REQUEST_BYTES = 64 * 1024;
+const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "::1"]);
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,6 +45,47 @@ const createResponse = (
   status: number,
 ): NextResponse<SyncApiResponse> => NextResponse.json(body, { status });
 
+const normalizeOrigin = (
+  value: string,
+): { protocol: string; hostname: string; port: string } | null => {
+  try {
+    const url = new URL(value);
+    return {
+      protocol: url.protocol,
+      hostname: url.hostname.toLowerCase(),
+      port:
+        url.port ||
+        (url.protocol === "https:"
+          ? "443"
+          : url.protocol === "http:"
+            ? "80"
+            : ""),
+    };
+  } catch {
+    return null;
+  }
+};
+
+const isLoopbackHostname = (hostname: string): boolean =>
+  LOOPBACK_HOSTS.has(hostname.toLowerCase());
+
+const isEquivalentOrigin = (
+  left: { protocol: string; hostname: string; port: string },
+  right: { protocol: string; hostname: string; port: string },
+): boolean => {
+  if (left.protocol !== right.protocol || left.port !== right.port) {
+    return false;
+  }
+
+  if (left.hostname === right.hostname) {
+    return true;
+  }
+
+  return (
+    isLoopbackHostname(left.hostname) && isLoopbackHostname(right.hostname)
+  );
+};
+
 const isLegacyJwtKey = (value: string): boolean =>
   value.split(".").length === 3;
 
@@ -59,18 +101,38 @@ const createSupabaseAuthHeaders = (apiKey: string): HeadersInit => {
   return headers;
 };
 
+const isIdempotentConflict = (status: number): boolean => status === 409;
+
 const isSameOriginRequest = (request: Request): boolean => {
   const originHeader = request.headers.get("origin");
   if (!originHeader) {
     return true;
   }
 
-  try {
-    const requestOrigin = new URL(request.url).origin;
-    return originHeader === requestOrigin;
-  } catch {
+  const requestOrigin = normalizeOrigin(request.url);
+  const origin = normalizeOrigin(originHeader);
+  if (!requestOrigin || !origin) {
     return false;
   }
+
+  if (isEquivalentOrigin(origin, requestOrigin)) {
+    return true;
+  }
+
+  const forwardedProto = request.headers.get("x-forwarded-proto");
+  const forwardedHost =
+    request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  if (!forwardedHost) {
+    return false;
+  }
+
+  const inferredProtocol =
+    forwardedProto?.trim() ||
+    requestOrigin.protocol.slice(0, requestOrigin.protocol.length - 1);
+  const forwardedOrigin = normalizeOrigin(
+    `${inferredProtocol}://${forwardedHost}`,
+  );
+  return forwardedOrigin ? isEquivalentOrigin(origin, forwardedOrigin) : false;
 };
 
 export async function POST(
@@ -169,6 +231,10 @@ export async function POST(
     }
 
     const upstreamError = await response.text().catch(() => "");
+    if (isIdempotentConflict(response.status)) {
+      return createResponse({ ok: true }, 200);
+    }
+
     const retryable = isRetryableHttpStatus(response.status);
     console.error("Supabase sync request failed.", {
       status: response.status,

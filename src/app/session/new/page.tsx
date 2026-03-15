@@ -2,15 +2,10 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Compass, Play, Sparkles } from "lucide-react";
 
+import { PageShell, StatPill } from "@/components/brand/page-shell";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { getRoutine } from "@/entities/routine/repo/routine.repo";
 import { createSession } from "@/entities/session/repo/session.repo";
 
@@ -65,34 +60,45 @@ function NewSessionContent() {
   };
 
   return (
-    <main className="mx-auto flex w-full max-w-xl flex-col gap-4 p-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>새 세션</CardTitle>
-          <CardDescription>
-            {routineId
-              ? `선택된 루틴: ${selectedRoutineName}`
-              : "루틴 없이 바로 세션을 시작합니다."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-3">
-            <Button onClick={handleStart} disabled={isStarting}>
-              {isStarting ? "세션 시작 중..." : "세션 시작"}
-            </Button>
-            {errorMessage ? (
-              <p className="text-sm text-destructive">{errorMessage}</p>
-            ) : null}
-          </div>
-        </CardContent>
-      </Card>
-    </main>
+    <PageShell
+      density="compact"
+      eyebrow="Fallback Entry"
+      title="새 세션"
+      description={
+        routineId
+          ? `선택된 루틴을 기준으로 새 세션을 시작합니다. 현재 선택: ${selectedRoutineName}`
+          : "루틴 없이 바로 세션을 시작합니다."
+      }
+      actions={
+        <Button onClick={handleStart} disabled={isStarting}>
+          <Play className="h-4 w-4" />
+          {isStarting ? "세션 시작 중..." : "세션 시작"}
+        </Button>
+      }
+      meta={
+        <>
+          <StatPill
+            label="Entry"
+            value={routineId ? "Routine-based" : "Quick start"}
+            icon={Compass}
+          />
+          <StatPill label="Routing" value="Fallback path" icon={Sparkles} />
+          <StatPill label="Next" value="Open editor" icon={Play} />
+        </>
+      }
+    >
+      {errorMessage ? (
+        <p className="rounded-[1.2rem] border border-destructive/20 bg-red-50/70 px-4 py-3 text-sm font-medium text-destructive">
+          {errorMessage}
+        </p>
+      ) : null}
+    </PageShell>
   );
 }
 
 export default function NewSessionPage() {
   return (
-    <Suspense fallback={<main className="mx-auto w-full max-w-xl p-4" />}>
+    <Suspense fallback={<main className="mx-auto w-full max-w-6xl p-4" />}>
       <NewSessionContent />
     </Suspense>
   );

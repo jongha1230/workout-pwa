@@ -1,9 +1,5 @@
 import type { Metadata } from "next";
-import {
-  IBM_Plex_Mono,
-  Noto_Sans_KR,
-  Rajdhani,
-} from "next/font/google";
+import { IBM_Plex_Mono, Noto_Sans_KR, Rajdhani } from "next/font/google";
 import "./globals.css";
 import ServiceWorkerRegister from "@/components/pwa/sw-register";
 import SyncEngineBootstrap from "@/components/sync/sync-engine-bootstrap";

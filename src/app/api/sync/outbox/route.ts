@@ -54,7 +54,12 @@ const normalizeOrigin = (
       protocol: url.protocol,
       hostname: url.hostname.toLowerCase(),
       port:
-        url.port || (url.protocol === "https:" ? "443" : url.protocol === "http:" ? "80" : ""),
+        url.port ||
+        (url.protocol === "https:"
+          ? "443"
+          : url.protocol === "http:"
+            ? "80"
+            : ""),
     };
   } catch {
     return null;
@@ -76,7 +81,9 @@ const isEquivalentOrigin = (
     return true;
   }
 
-  return isLoopbackHostname(left.hostname) && isLoopbackHostname(right.hostname);
+  return (
+    isLoopbackHostname(left.hostname) && isLoopbackHostname(right.hostname)
+  );
 };
 
 const isLegacyJwtKey = (value: string): boolean =>
@@ -120,7 +127,9 @@ const isSameOriginRequest = (request: Request): boolean => {
   const inferredProtocol =
     forwardedProto?.trim() ||
     requestOrigin.protocol.slice(0, requestOrigin.protocol.length - 1);
-  const forwardedOrigin = normalizeOrigin(`${inferredProtocol}://${forwardedHost}`);
+  const forwardedOrigin = normalizeOrigin(
+    `${inferredProtocol}://${forwardedHost}`,
+  );
   return forwardedOrigin ? isEquivalentOrigin(origin, forwardedOrigin) : false;
 };
 

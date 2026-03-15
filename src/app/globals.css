@@ -189,8 +189,11 @@
     pointer-events: none;
     position: fixed;
     inset: 0;
-    background:
-      radial-gradient(circle at center, transparent 54%, rgba(2, 4, 6, 0.58) 100%);
+    background: radial-gradient(
+      circle at center,
+      transparent 54%,
+      rgba(2, 4, 6, 0.58) 100%
+    );
     z-index: 0;
   }
 
@@ -207,16 +210,11 @@
 
 @layer utilities {
   .font-display {
-    font-family:
-      var(--font-display),
-      var(--font-sans),
-      sans-serif;
+    font-family: var(--font-display), var(--font-sans), sans-serif;
   }
 
   .brand-kicker {
-    font-family:
-      var(--font-ibm-plex-mono),
-      monospace;
+    font-family: var(--font-ibm-plex-mono), monospace;
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.28em;
@@ -228,12 +226,11 @@
     position: relative;
     border-radius: calc(var(--radius) * 2);
     border: 1px solid var(--panel-border);
-    background:
-      linear-gradient(
-        180deg,
-        rgba(10, 18, 20, 0.82) 0%,
-        rgba(7, 13, 16, 0.72) 100%
-      );
+    background: linear-gradient(
+      180deg,
+      rgba(10, 18, 20, 0.82) 0%,
+      rgba(7, 13, 16, 0.72) 100%
+    );
     box-shadow: var(--hero-shadow);
     backdrop-filter: blur(28px);
   }
@@ -255,12 +252,11 @@
 
   .surface-soft {
     border: 1px solid rgba(255, 255, 255, 0.1);
-    background:
-      linear-gradient(
-        180deg,
-        rgba(12, 21, 24, 0.8) 0%,
-        rgba(8, 14, 17, 0.68) 100%
-      );
+    background: linear-gradient(
+      180deg,
+      rgba(12, 21, 24, 0.8) 0%,
+      rgba(8, 14, 17, 0.68) 100%
+    );
     box-shadow: var(--panel-shadow);
     backdrop-filter: blur(22px);
   }
@@ -293,12 +289,11 @@
 
   .glass-field {
     border: 1px solid rgba(255, 255, 255, 0.1);
-    background:
-      linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.08) 0%,
-        rgba(255, 255, 255, 0.03) 100%
-      );
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(255, 255, 255, 0.03) 100%
+    );
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.04),
       0 14px 32px rgba(0, 0, 0, 0.16);

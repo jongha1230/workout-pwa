@@ -190,15 +190,19 @@ export default function RoutineDetailPage() {
     }
   };
 
-  const totalSets = sessions.reduce((sum, session) => sum + session.sets.length, 0);
+  const totalSets = sessions.reduce(
+    (sum, session) => sum + session.sets.length,
+    0,
+  );
   const completedSets = sessions.reduce(
     (sum, session) =>
-      sum +
-      session.sets.filter((setItem) => setItem.completed ?? false).length,
+      sum + session.sets.filter((setItem) => setItem.completed ?? false).length,
     0,
   );
   const completionRate =
-    totalSets === 0 ? "0%" : `${Math.round((completedSets / totalSets) * 100)}%`;
+    totalSets === 0
+      ? "0%"
+      : `${Math.round((completedSets / totalSets) * 100)}%`;
 
   return (
     <PageShell
@@ -294,7 +298,10 @@ export default function RoutineDetailPage() {
           {isEditingRoutine ? (
             <Card>
               <CardContent className="pt-6">
-                <form className="flex flex-col gap-4" onSubmit={handleSaveRoutine}>
+                <form
+                  className="flex flex-col gap-4"
+                  onSubmit={handleSaveRoutine}
+                >
                   <label className="space-y-2">
                     <span className="text-sm font-medium text-white/74">
                       루틴 이름
@@ -311,7 +318,9 @@ export default function RoutineDetailPage() {
                     <textarea
                       className="glass-field min-h-32 w-full rounded-[1rem] px-4 py-3 text-sm leading-7 text-white outline-none placeholder:text-white/36 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
                       value={draftDescription}
-                      onChange={(event) => setDraftDescription(event.target.value)}
+                      onChange={(event) =>
+                        setDraftDescription(event.target.value)
+                      }
                     />
                   </label>
                   <div className="flex flex-wrap gap-3">
@@ -343,7 +352,9 @@ export default function RoutineDetailPage() {
             action={
               sessions.length > 0 ? (
                 <Button asChild size="sm" variant="outline">
-                  <Link href={`/session/${sessions[0].id}`}>가장 최근 세션 열기</Link>
+                  <Link href={`/session/${sessions[0].id}`}>
+                    가장 최근 세션 열기
+                  </Link>
                 </Button>
               ) : null
             }
@@ -386,14 +397,16 @@ export default function RoutineDetailPage() {
                   >
                     <CardContent className="flex flex-col gap-4 pt-6 md:flex-row md:items-center md:justify-between">
                       <div className="space-y-2">
-                        <span className="brand-kicker">Session {sessions.length - index}</span>
+                        <span className="brand-kicker">
+                          Session {sessions.length - index}
+                        </span>
                         <div className="space-y-1">
                           <p className="font-display text-2xl font-semibold tracking-[-0.05em] text-foreground">
                             {formatDateTime(session.updatedAt)}
                           </p>
                           <p className="text-sm text-white/54">
-                            세트 {session.sets.length}개 · 완료 {completedCount}/
-                            {session.sets.length}
+                            세트 {session.sets.length}개 · 완료 {completedCount}
+                            /{session.sets.length}
                           </p>
                         </div>
                       </div>
@@ -416,7 +429,9 @@ export default function RoutineDetailPage() {
                           }}
                         >
                           <Trash2 className="h-4 w-4" />
-                          {deletingSessionId === session.id ? "삭제 중..." : "삭제"}
+                          {deletingSessionId === session.id
+                            ? "삭제 중..."
+                            : "삭제"}
                         </Button>
                       </div>
                     </CardContent>

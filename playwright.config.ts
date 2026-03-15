@@ -1,7 +1,8 @@
 import { defineConfig } from "@playwright/test";
 
 const testPort = Number(process.env.PLAYWRIGHT_PORT ?? "3000");
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? `http://127.0.0.1:${testPort}`;
+const baseURL =
+  process.env.PLAYWRIGHT_BASE_URL ?? `http://127.0.0.1:${testPort}`;
 
 export default defineConfig({
   testDir: "./tests",

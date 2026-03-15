@@ -78,7 +78,9 @@ export default function NewRoutinePage() {
         <Card>
           <CardHeader>
             <p className="brand-kicker">Form</p>
-            <CardTitle className="text-3xl">루틴 정보를 입력해 주세요.</CardTitle>
+            <CardTitle className="text-3xl">
+              루틴 정보를 입력해 주세요.
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
@@ -94,9 +96,7 @@ export default function NewRoutinePage() {
               </label>
 
               <label className="space-y-2">
-                <span className="text-sm font-medium text-white/74">
-                  설명
-                </span>
+                <span className="text-sm font-medium text-white/74">설명</span>
                 <textarea
                   className={textareaClassName}
                   placeholder="설명 (선택)"

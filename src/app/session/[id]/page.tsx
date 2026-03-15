@@ -201,7 +201,9 @@ export default function SessionDetailPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const safeSets = setsFromStore ?? [];
-  const completedCount = safeSets.filter((item) => item.completed ?? false).length;
+  const completedCount = safeSets.filter(
+    (item) => item.completed ?? false,
+  ).length;
   const completionRate =
     safeSets.length === 0
       ? "0%"
@@ -268,7 +270,8 @@ export default function SessionDetailPage() {
         if (!cancelled) {
           setSessionTitle(routine?.name ?? "루틴 세션");
           setSessionDescription(
-            routine?.description ?? "세트를 여러 개 추가/수정/삭제할 수 있습니다.",
+            routine?.description ??
+              "세트를 여러 개 추가/수정/삭제할 수 있습니다.",
           );
           setRoutineLinkHref(`/routines/${currentSession.routineId}`);
         }
@@ -557,7 +560,8 @@ export default function SessionDetailPage() {
                           세트 추가와 저장을 먼저 두고, 보조 설명은 접었습니다.
                         </span>
                         <span className="hidden sm:inline">
-                          직전 값 자동 채움과 저장 시점 검증을 유지하면서, 액션은 상단에서 바로 실행합니다.
+                          직전 값 자동 채움과 저장 시점 검증을 유지하면서,
+                          액션은 상단에서 바로 실행합니다.
                         </span>
                       </p>
                     </div>
@@ -651,7 +655,9 @@ export default function SessionDetailPage() {
                                 {index + 1}
                               </div>
                               <div className="space-y-2">
-                                <p className="brand-kicker !text-white/44">Set Block</p>
+                                <p className="brand-kicker !text-white/44">
+                                  Set Block
+                                </p>
                                 <div className="space-y-1 sm:space-y-1.5">
                                   <p className="font-display text-2xl font-semibold tracking-[-0.05em] text-white sm:text-3xl">
                                     {isCompleted
@@ -661,10 +667,12 @@ export default function SessionDetailPage() {
                                         : "Ready"}
                                   </p>
                                   <p className="text-xs leading-5 text-white/44 sm:hidden">
-                                    중량과 횟수를 입력한 뒤 완료 상태를 바꿀 수 있습니다.
+                                    중량과 횟수를 입력한 뒤 완료 상태를 바꿀 수
+                                    있습니다.
                                   </p>
                                   <p className="hidden text-sm leading-6 text-white/52 sm:block">
-                                    세트 {index + 1} · 중량과 횟수를 입력하고 완료 상태를 전환할 수 있습니다.
+                                    세트 {index + 1} · 중량과 횟수를 입력하고
+                                    완료 상태를 전환할 수 있습니다.
                                   </p>
                                 </div>
                               </div>
@@ -687,7 +695,10 @@ export default function SessionDetailPage() {
                                 variant={isCompleted ? "secondary" : "outline"}
                                 className="w-full justify-center sm:w-auto"
                                 onClick={() => {
-                                  void handleToggleCompleted(item, !isCompleted);
+                                  void handleToggleCompleted(
+                                    item,
+                                    !isCompleted,
+                                  );
                                 }}
                               >
                                 <CheckCircle2 className="h-4 w-4" />
@@ -723,7 +734,11 @@ export default function SessionDetailPage() {
                                   autoFocus={isActive}
                                   onFocus={() => setActiveSetId(item.id)}
                                   onChange={(event) =>
-                                    handleChange(item.id, "weight", event.target.value)
+                                    handleChange(
+                                      item.id,
+                                      "weight",
+                                      event.target.value,
+                                    )
                                   }
                                 />
                                 <span className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-xs font-medium uppercase tracking-[0.22em] text-white/36">
@@ -747,7 +762,11 @@ export default function SessionDetailPage() {
                                   value={currentReps}
                                   onFocus={() => setActiveSetId(item.id)}
                                   onChange={(event) =>
-                                    handleChange(item.id, "reps", event.target.value)
+                                    handleChange(
+                                      item.id,
+                                      "reps",
+                                      event.target.value,
+                                    )
                                   }
                                 />
                                 <span className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-xs font-medium uppercase tracking-[0.22em] text-white/36">
@@ -760,7 +779,9 @@ export default function SessionDetailPage() {
                           <div className="flex flex-col gap-3 border-t border-white/8 pt-4 sm:flex-row sm:items-center sm:justify-between">
                             <div className="flex flex-wrap gap-2">
                               <span className="hud-chip rounded-[0.9rem] px-3 py-2 text-[11px] font-medium uppercase tracking-[0.22em] text-white/52">
-                                {index === 0 ? "Empty Start" : "Seed From Previous"}
+                                {index === 0
+                                  ? "Empty Start"
+                                  : "Seed From Previous"}
                               </span>
                               {isActive ? (
                                 <span className="hud-chip rounded-[0.9rem] px-3 py-2 text-[11px] font-medium uppercase tracking-[0.22em] text-primary">
@@ -786,7 +807,9 @@ export default function SessionDetailPage() {
               <Card className="bg-[linear-gradient(180deg,rgba(9,19,21,0.9),rgba(6,12,15,0.8))]">
                 <CardContent className="space-y-5 pt-6">
                   <div className="space-y-2">
-                    <p className="brand-kicker !text-primary/90">Session Pulse</p>
+                    <p className="brand-kicker !text-primary/90">
+                      Session Pulse
+                    </p>
                     <p className="font-display text-2xl font-semibold tracking-[-0.05em] text-white">
                       현재 세션 상태
                     </p>
@@ -808,14 +831,17 @@ export default function SessionDetailPage() {
                       <p className="mt-2 font-display text-3xl font-semibold tracking-[-0.05em] text-white">
                         {completedCount}/{safeSets.length}
                       </p>
-                      <p className="mt-2 text-sm text-white/46">{completionRate} 완료</p>
+                      <p className="mt-2 text-sm text-white/46">
+                        {completionRate} 완료
+                      </p>
                     </div>
                     <div className="glass-field rounded-[1.15rem] px-4 py-4">
                       <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/42">
                         Save model
                       </p>
                       <p className="mt-2 text-sm leading-6 text-white/54">
-                        입력은 draft로 유지하고, 저장 시점에만 Zod 검증 후 확정합니다.
+                        입력은 draft로 유지하고, 저장 시점에만 Zod 검증 후
+                        확정합니다.
                       </p>
                     </div>
                   </div>

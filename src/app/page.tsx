@@ -14,7 +14,11 @@ import {
   Sparkles,
 } from "lucide-react";
 
-import { PageShell, SectionHeading, StatPill } from "@/components/brand/page-shell";
+import {
+  PageShell,
+  SectionHeading,
+  StatPill,
+} from "@/components/brand/page-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { listRoutines } from "@/entities/routine/repo/routine.repo";
@@ -41,11 +45,19 @@ const formatDateTime = (timestamp: number) =>
 export default function Home() {
   const router = useRouter();
   const [isStartingSession, setIsStartingSession] = useState(false);
-  const [startingRoutineId, setStartingRoutineId] = useState<string | null>(null);
+  const [startingRoutineId, setStartingRoutineId] = useState<string | null>(
+    null,
+  );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [recentRoutines, setRecentRoutines] = useState<HomeRoutineSummary[]>([]);
-  const [latestSession, setLatestSession] = useState<SessionRecord | null>(null);
-  const [routineNameById, setRoutineNameById] = useState<Record<string, string>>({});
+  const [recentRoutines, setRecentRoutines] = useState<HomeRoutineSummary[]>(
+    [],
+  );
+  const [latestSession, setLatestSession] = useState<SessionRecord | null>(
+    null,
+  );
+  const [routineNameById, setRoutineNameById] = useState<
+    Record<string, string>
+  >({});
   const [isHydratingOverview, setIsHydratingOverview] = useState(true);
 
   useEffect(() => {
@@ -68,15 +80,14 @@ export default function Home() {
 
         if (cancelled) return;
 
-        const sessionCountByRoutine = loadedSessions.reduce<Record<string, number>>(
-          (acc, session) => {
-            if (session.routineId) {
-              acc[session.routineId] = (acc[session.routineId] ?? 0) + 1;
-            }
-            return acc;
-          },
-          {},
-        );
+        const sessionCountByRoutine = loadedSessions.reduce<
+          Record<string, number>
+        >((acc, session) => {
+          if (session.routineId) {
+            acc[session.routineId] = (acc[session.routineId] ?? 0) + 1;
+          }
+          return acc;
+        }, {});
 
         setRecentRoutines(
           loadedRoutines.slice(0, 3).map((routine) => ({
@@ -85,7 +96,9 @@ export default function Home() {
           })),
         );
         setRoutineNameById(
-          Object.fromEntries(loadedRoutines.map((routine) => [routine.id, routine.name])),
+          Object.fromEntries(
+            loadedRoutines.map((routine) => [routine.id, routine.name]),
+          ),
         );
         setLatestSession(loadedSessions[0] ?? null);
       } catch {
@@ -110,10 +123,7 @@ export default function Home() {
       return "빠른 세션";
     }
 
-    return (
-      routineNameById[session.routineId] ??
-      "루틴 세션"
-    );
+    return routineNameById[session.routineId] ?? "루틴 세션";
   };
 
   const handleStartSession = async (routineId: string | null = null) => {
@@ -208,7 +218,9 @@ export default function Home() {
             ) : latestSession ? (
               <div className="glass-field rounded-[1.4rem] px-5 py-5">
                 <div className="mb-4 flex items-center justify-between gap-3">
-                  <span className="brand-kicker !text-white/48">Latest Session</span>
+                  <span className="brand-kicker !text-white/48">
+                    Latest Session
+                  </span>
                   <span className="hud-chip rounded-[0.9rem] px-3 py-2 text-xs font-medium uppercase tracking-[0.2em] text-white/68">
                     {latestSession.sets.length} sets
                   </span>
@@ -232,8 +244,8 @@ export default function Home() {
               </div>
             ) : (
               <div className="glass-field rounded-[1.4rem] px-5 py-5">
-                아직 저장된 세션이 없습니다. 첫 세션을 만들고 나면 이 영역이 최근
-                기록 대시보드로 바뀝니다.
+                아직 저장된 세션이 없습니다. 첫 세션을 만들고 나면 이 영역이
+                최근 기록 대시보드로 바뀝니다.
               </div>
             )}
 
@@ -267,19 +279,25 @@ export default function Home() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="glass-field rounded-[1.2rem] px-4 py-4">
-              <p className="mb-2 text-sm font-medium text-white">1. 빠른 기록</p>
+              <p className="mb-2 text-sm font-medium text-white">
+                1. 빠른 기록
+              </p>
               <p className="text-sm leading-7 text-white/58">
                 루틴 없이 바로 운동을 기록합니다. 가장 짧은 데모 경로입니다.
               </p>
             </div>
             <div className="glass-field rounded-[1.2rem] px-4 py-4">
-              <p className="mb-2 text-sm font-medium text-white">2. 루틴 기반 기록</p>
+              <p className="mb-2 text-sm font-medium text-white">
+                2. 루틴 기반 기록
+              </p>
               <p className="text-sm leading-7 text-white/58">
                 저장된 루틴을 고르고 바로 세션으로 진입합니다.
               </p>
             </div>
             <div className="glass-field rounded-[1.2rem] px-4 py-4">
-              <p className="mb-2 text-sm font-medium text-white">3. 첫 루틴 생성</p>
+              <p className="mb-2 text-sm font-medium text-white">
+                3. 첫 루틴 생성
+              </p>
               <p className="text-sm leading-7 text-white/58">
                 포트폴리오 시연용 루틴을 하나 만들어 구조화된 흐름을 보여줍니다.
               </p>
@@ -342,7 +360,9 @@ export default function Home() {
                       }}
                     >
                       <Play className="h-4 w-4" />
-                      {startingRoutineId === routine.id ? "세션 시작 중..." : `${routine.name} 시작`}
+                      {startingRoutineId === routine.id
+                        ? "세션 시작 중..."
+                        : `${routine.name} 시작`}
                     </Button>
                     <Button asChild size="sm" variant="outline">
                       <Link href={`/routines/${routine.id}`}>상세 보기</Link>

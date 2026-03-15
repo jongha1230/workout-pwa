@@ -40,7 +40,9 @@ export default function RoutinesPage() {
   const [deletingRoutineId, setDeletingRoutineId] = useState<string | null>(
     null,
   );
-  const [startingRoutineId, setStartingRoutineId] = useState<string | null>(null);
+  const [startingRoutineId, setStartingRoutineId] = useState<string | null>(
+    null,
+  );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -214,7 +216,9 @@ export default function RoutinesPage() {
                       }}
                     >
                       <Play className="h-4 w-4" />
-                      {startingRoutineId === routine.id ? "세션 시작 중..." : "이 루틴으로 시작"}
+                      {startingRoutineId === routine.id
+                        ? "세션 시작 중..."
+                        : "이 루틴으로 시작"}
                     </Button>
                     <Button asChild size="sm" variant="outline">
                       <Link href={`/routines/${routine.id}`}>
@@ -232,7 +236,9 @@ export default function RoutinesPage() {
                       }}
                     >
                       <Trash2 className="h-4 w-4" />
-                      {deletingRoutineId === routine.id ? "삭제 중..." : "루틴 삭제"}
+                      {deletingRoutineId === routine.id
+                        ? "삭제 중..."
+                        : "루틴 삭제"}
                     </Button>
                   </div>
                 </CardContent>

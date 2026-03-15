@@ -27,7 +27,8 @@ const buttonVariants = cva(
         sm: "h-9 gap-1.5 px-4 has-[>svg]:px-3",
         lg: "h-12 px-6 text-sm has-[>svg]:px-5",
         icon: "size-11",
-        "icon-xs": "size-7 rounded-[0.8rem] [&_svg:not([class*='size-'])]:size-3",
+        "icon-xs":
+          "size-7 rounded-[0.8rem] [&_svg:not([class*='size-'])]:size-3",
         "icon-sm": "size-9",
         "icon-lg": "size-12",
       },

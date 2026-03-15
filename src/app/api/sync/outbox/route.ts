@@ -101,6 +101,8 @@ const createSupabaseAuthHeaders = (apiKey: string): HeadersInit => {
   return headers;
 };
 
+const isIdempotentConflict = (status: number): boolean => status === 409;
+
 const isSameOriginRequest = (request: Request): boolean => {
   const originHeader = request.headers.get("origin");
   if (!originHeader) {
@@ -229,6 +231,10 @@ export async function POST(
     }
 
     const upstreamError = await response.text().catch(() => "");
+    if (isIdempotentConflict(response.status)) {
+      return createResponse({ ok: true }, 200);
+    }
+
     const retryable = isRetryableHttpStatus(response.status);
     console.error("Supabase sync request failed.", {
       status: response.status,

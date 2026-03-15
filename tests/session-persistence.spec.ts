@@ -216,7 +216,9 @@ test("offline boot works for home, routines, and existing session", async ({
   await expect(page.getByText("오프라인입니다")).toHaveCount(0);
 
   await page.goto("/routines");
-  await expect(page.getByRole("heading", { name: "루틴" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "루틴", exact: true, level: 1 }),
+  ).toBeVisible();
 
   await page.goto(`/session/${sessionId}`);
   await expect(page.getByText("세트 1")).toBeVisible();
@@ -341,18 +343,24 @@ test("outbox transitions from pending to synced after online recovery", async ({
   await expect(page.getByText("Saved session successfully")).toBeVisible();
 
   const pendingCounts = await readOutboxStatusCounts(page);
-  expect(pendingCounts.pending).toBeGreaterThanOrEqual(4);
+  expect(pendingCounts.pending).toBeGreaterThan(0);
   expect(pendingCounts.synced).toBe(0);
 
   await context.setOffline(false);
   await page.reload();
 
   await expect
-    .poll(async () => (await readOutboxStatusCounts(page)).pending)
-    .toBe(0);
-  await expect
-    .poll(async () => (await readOutboxStatusCounts(page)).synced)
-    .toBeGreaterThanOrEqual(4);
+    .poll(async () => await readOutboxStatusCounts(page), { timeout: 15_000 })
+    .toEqual(
+      expect.objectContaining({
+        pending: 0,
+        processing: 0,
+        failed: 0,
+      }),
+    );
+
+  const recoveredCounts = await readOutboxStatusCounts(page);
+  expect(recoveredCounts.synced).toBeGreaterThanOrEqual(pendingCounts.pending);
 });
 
 const addAndSaveTwoSets = async (

@@ -79,6 +79,21 @@ const isEquivalentOrigin = (
   return isLoopbackHostname(left.hostname) && isLoopbackHostname(right.hostname);
 };
 
+const isLegacyJwtKey = (value: string): boolean =>
+  value.split(".").length === 3;
+
+const createSupabaseAuthHeaders = (apiKey: string): HeadersInit => {
+  const headers: HeadersInit = {
+    apikey: apiKey,
+  };
+
+  if (isLegacyJwtKey(apiKey)) {
+    headers.Authorization = `Bearer ${apiKey}`;
+  }
+
+  return headers;
+};
+
 const isSameOriginRequest = (request: Request): boolean => {
   const originHeader = request.headers.get("origin");
   if (!originHeader) {
@@ -184,8 +199,7 @@ export async function POST(
     const response = await fetch(syncEndpoint, {
       method: "POST",
       headers: {
-        apikey: serviceRoleKey,
-        Authorization: `Bearer ${serviceRoleKey}`,
+        ...createSupabaseAuthHeaders(serviceRoleKey),
         "Content-Type": "application/json",
         Prefer: "return=minimal",
       },
@@ -205,12 +219,21 @@ export async function POST(
       return createResponse({ ok: true }, 200);
     }
 
+    const upstreamError = await response.text().catch(() => "");
     const retryable = isRetryableHttpStatus(response.status);
+    console.error("Supabase sync request failed.", {
+      status: response.status,
+      body: upstreamError,
+    });
+
     return createResponse(
       {
         ok: false,
         retryable,
-        error: `Supabase sync failed with status ${response.status}`,
+        error:
+          upstreamError.length > 0
+            ? `Supabase sync failed with status ${response.status}: ${upstreamError}`
+            : `Supabase sync failed with status ${response.status}`,
       },
       retryable ? 503 : 400,
     );

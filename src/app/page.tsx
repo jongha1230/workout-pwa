@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import {
   Activity,
   ArrowRight,
-  BarChart3,
   Clock3,
   CloudOff,
   Dumbbell,
@@ -23,6 +22,10 @@ import {
   SectionHeading,
   StatPill,
 } from "@/components/brand/page-shell";
+import {
+  RoutineShareChart,
+  TrainingActivityChart,
+} from "@/components/home/training-insights-charts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { listRoutines } from "@/entities/routine/repo/routine.repo";
@@ -400,11 +403,6 @@ export default function Home() {
     }
   };
 
-  const maxRecentSessionCount = Math.max(
-    1,
-    ...trainingSnapshot.recentActivity.map((point) => point.sessionCount),
-  );
-
   return (
     <PageShell
       eyebrow="로컬 우선 운동 기록"
@@ -642,7 +640,7 @@ export default function Home() {
             <Card>
               <CardHeader>
                 <p className="brand-kicker">Streak & Activity</p>
-                <CardTitle className="text-3xl">최근 흐름</CardTitle>
+                <CardTitle className="text-3xl">최근 흐름 차트</CardTitle>
               </CardHeader>
               <CardContent className="space-y-5">
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -676,43 +674,11 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-7 gap-2">
-                  {trainingSnapshot.recentActivity.map((point) => {
-                    const height =
-                      16 +
-                      Math.round(
-                        (point.sessionCount / maxRecentSessionCount) * 72,
-                      );
-
-                    return (
-                      <div
-                        key={point.key}
-                        className="flex flex-col items-center gap-3 rounded-[1.1rem] border border-white/8 bg-white/[0.035] px-2 py-3"
-                      >
-                        <div className="flex h-28 items-end">
-                          <div
-                            className="w-6 rounded-full bg-[linear-gradient(180deg,rgba(111,255,220,0.95),rgba(111,255,220,0.18))] shadow-[0_0_28px_rgba(111,255,220,0.18)]"
-                            style={{
-                              height: `${point.sessionCount === 0 ? 12 : height}px`,
-                            }}
-                          />
-                        </div>
-                        <div className="space-y-1 text-center">
-                          <p className="text-xs uppercase tracking-[0.14em] text-white/40">
-                            {point.label}
-                          </p>
-                          <p className="font-display text-lg tracking-[-0.04em] text-white">
-                            {point.sessionCount}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                <TrainingActivityChart data={trainingSnapshot.recentActivity} />
 
                 <p className="text-sm leading-6 text-white/56">
-                  막대 높이는 최근 7일의 일자별 세션 수를 의미합니다. 쉬는 날도
-                  같이 보여줘서 실제 사용 리듬이 읽히도록 구성했습니다.
+                  세션 수와 볼륨을 함께 보여줘서, 단순 방문 수가 아니라 실제
+                  훈련 강도 변화도 바로 읽을 수 있게 했습니다.
                 </p>
               </CardContent>
             </Card>
@@ -722,54 +688,59 @@ export default function Home() {
                 <p className="brand-kicker">Routine Insights</p>
                 <CardTitle className="text-3xl">루틴별 사용 비중</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                {trainingSnapshot.routineInsights.map((routine) => (
-                  <div
-                    key={routine.id}
-                    className="glass-field rounded-[1.2rem] px-4 py-4"
-                  >
-                    <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="min-w-0 space-y-1">
-                        <p className="truncate font-medium text-white">
-                          {routine.label}
-                        </p>
-                        <p className="text-sm text-white/52">
-                          마지막 기록: {formatDateTime(routine.lastTrainedAt)}
-                        </p>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        <span className="hud-chip rounded-[0.9rem] px-3 py-2 text-xs font-medium uppercase tracking-[0.18em] text-white/68">
-                          {routine.sessionCount}회
-                        </span>
-                        <span className="hud-chip rounded-[0.9rem] px-3 py-2 text-xs font-medium uppercase tracking-[0.18em] text-white/68">
-                          {routine.totalSets}세트
-                        </span>
-                        <span className="hud-chip rounded-[0.9rem] px-3 py-2 text-xs font-medium uppercase tracking-[0.18em] text-white/68">
-                          {formatCompactNumber(routine.totalVolume)} 볼륨
-                        </span>
-                      </div>
-                    </div>
-                    <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_120px] lg:items-center">
-                      <div className="space-y-2">
-                        <div className="h-2 overflow-hidden rounded-full bg-white/8">
-                          <div
-                            className="h-full rounded-full bg-[linear-gradient(90deg,rgba(111,255,220,0.95),rgba(106,129,255,0.65))]"
-                            style={{ width: `${Math.max(routine.share, 8)}%` }}
-                          />
-                        </div>
-                        <p className="text-sm text-white/52">
-                          전체 세션 중 {routine.share}%를 차지합니다.
-                        </p>
-                      </div>
-                      <div className="surface-soft flex items-center gap-2 rounded-[1rem] px-3 py-3 text-sm text-white/60">
-                        <BarChart3 className="h-4 w-4 shrink-0 text-primary" />
-                        <span>상위 사용 루틴</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <CardContent className="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)]">
+                <RoutineShareChart data={trainingSnapshot.routineInsights} />
 
-                <div className="surface-soft flex items-start gap-3 rounded-[1.2rem] px-4 py-4 text-sm text-white/60">
+                <div className="grid gap-3">
+                  {trainingSnapshot.routineInsights.map((routine) => (
+                    <div
+                      key={routine.id}
+                      className="glass-field rounded-[1.2rem] px-4 py-4"
+                    >
+                      <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0 space-y-1">
+                          <p className="truncate font-medium text-white">
+                            {routine.label}
+                          </p>
+                          <p className="text-sm text-white/52">
+                            마지막 기록: {formatDateTime(routine.lastTrainedAt)}
+                          </p>
+                        </div>
+                        <span className="hud-chip rounded-[0.9rem] px-3 py-2 text-xs font-medium uppercase tracking-[0.18em] text-white/68">
+                          {routine.share}%
+                        </span>
+                      </div>
+                      <div className="grid gap-2 sm:grid-cols-3">
+                        <div className="surface-soft rounded-[1rem] px-3 py-3">
+                          <p className="text-xs uppercase tracking-[0.16em] text-white/38">
+                            세션
+                          </p>
+                          <p className="mt-2 font-display text-xl tracking-[-0.04em] text-white">
+                            {routine.sessionCount}회
+                          </p>
+                        </div>
+                        <div className="surface-soft rounded-[1rem] px-3 py-3">
+                          <p className="text-xs uppercase tracking-[0.16em] text-white/38">
+                            세트
+                          </p>
+                          <p className="mt-2 font-display text-xl tracking-[-0.04em] text-white">
+                            {routine.totalSets}세트
+                          </p>
+                        </div>
+                        <div className="surface-soft rounded-[1rem] px-3 py-3">
+                          <p className="text-xs uppercase tracking-[0.16em] text-white/38">
+                            볼륨
+                          </p>
+                          <p className="mt-2 font-display text-xl tracking-[-0.04em] text-white">
+                            {formatCompactNumber(routine.totalVolume)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="surface-soft flex items-start gap-3 rounded-[1.2rem] px-4 py-4 text-sm text-white/60 xl:col-span-2">
                   <Activity className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                   <p className="leading-6">
                     홈에서 자주 쓰는 루틴과 누적 볼륨을 바로 보여줘서, 단순 기록

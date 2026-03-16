@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  Activity,
   ArrowRight,
+  BarChart3,
   Clock3,
   CloudOff,
   Dumbbell,
@@ -36,11 +38,154 @@ type HomeRoutineSummary = RoutineRecord & {
   sessionCount: number;
 };
 
+type RecentActivityPoint = {
+  key: string;
+  label: string;
+  sessionCount: number;
+};
+
+type RoutineUsagePoint = {
+  id: string;
+  label: string;
+  sessionCount: number;
+  share: number;
+};
+
+type TrainingSnapshot = {
+  totalSessions: number;
+  totalRoutines: number;
+  totalSets: number;
+  totalVolume: number;
+  sessionsLast7Days: number;
+  activeDaysLast7: number;
+  recentActivity: RecentActivityPoint[];
+  routineUsage: RoutineUsagePoint[];
+};
+
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
+const QUICK_SESSION_ID = "__quick_session__";
+const compactNumberFormatter = new Intl.NumberFormat("ko-KR", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+const weekdayFormatter = new Intl.DateTimeFormat("ko-KR", {
+  weekday: "short",
+});
+
 const formatDateTime = (timestamp: number) =>
   new Intl.DateTimeFormat("ko-KR", {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(timestamp));
+
+const formatDateKey = (date: Date) =>
+  `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+
+const getSessionVolume = (session: SessionRecord) =>
+  session.sets.reduce((sum, set) => sum + set.weight * set.reps, 0);
+
+const formatCompactNumber = (value: number) =>
+  compactNumberFormatter.format(value);
+
+const EMPTY_TRAINING_SNAPSHOT: TrainingSnapshot = {
+  totalSessions: 0,
+  totalRoutines: 0,
+  totalSets: 0,
+  totalVolume: 0,
+  sessionsLast7Days: 0,
+  activeDaysLast7: 0,
+  recentActivity: [],
+  routineUsage: [],
+};
+
+const buildTrainingSnapshot = (
+  sessions: SessionRecord[],
+  routineNameById: Record<string, string>,
+  totalRoutines: number,
+): TrainingSnapshot => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const recentActivity = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(today);
+    date.setDate(today.getDate() - (6 - index));
+
+    return {
+      key: formatDateKey(date),
+      label: weekdayFormatter.format(date),
+      sessionCount: 0,
+    };
+  });
+
+  const recentActivityByKey = new Map(
+    recentActivity.map((item) => [item.key, item]),
+  );
+  const recentWindowStart = today.getTime() - 6 * DAY_IN_MS;
+
+  const totalSets = sessions.reduce(
+    (sum, session) => sum + session.sets.length,
+    0,
+  );
+  const totalVolume = sessions.reduce(
+    (sum, session) => sum + getSessionVolume(session),
+    0,
+  );
+
+  const routineCountById = sessions.reduce<Record<string, number>>(
+    (acc, session) => {
+      const routineKey = session.routineId ?? QUICK_SESSION_ID;
+      acc[routineKey] = (acc[routineKey] ?? 0) + 1;
+
+      if (session.updatedAt >= recentWindowStart) {
+        const sessionDate = new Date(session.updatedAt);
+        sessionDate.setHours(0, 0, 0, 0);
+
+        const entry = recentActivityByKey.get(formatDateKey(sessionDate));
+        if (entry) {
+          entry.sessionCount += 1;
+        }
+      }
+
+      return acc;
+    },
+    {},
+  );
+
+  const routineUsage = Object.entries(routineCountById)
+    .sort((left, right) => right[1] - left[1])
+    .slice(0, 4)
+    .map(([id, sessionCount]) => ({
+      id,
+      label:
+        id === QUICK_SESSION_ID
+          ? "빠른 세션"
+          : (routineNameById[id] ?? "삭제된 루틴"),
+      sessionCount,
+      share:
+        sessions.length === 0
+          ? 0
+          : Math.round((sessionCount / sessions.length) * 100),
+    }));
+
+  const sessionsLast7Days = recentActivity.reduce(
+    (sum, item) => sum + item.sessionCount,
+    0,
+  );
+  const activeDaysLast7 = recentActivity.filter(
+    (item) => item.sessionCount > 0,
+  ).length;
+
+  return {
+    totalSessions: sessions.length,
+    totalRoutines,
+    totalSets,
+    totalVolume,
+    sessionsLast7Days,
+    activeDaysLast7,
+    recentActivity,
+    routineUsage,
+  };
+};
 
 export default function Home() {
   const router = useRouter();
@@ -58,6 +203,9 @@ export default function Home() {
   const [routineNameById, setRoutineNameById] = useState<
     Record<string, string>
   >({});
+  const [trainingSnapshot, setTrainingSnapshot] = useState<TrainingSnapshot>(
+    EMPTY_TRAINING_SNAPSHOT,
+  );
   const [isHydratingOverview, setIsHydratingOverview] = useState(true);
 
   useEffect(() => {
@@ -89,15 +237,22 @@ export default function Home() {
           return acc;
         }, {});
 
+        const nextRoutineNameById = Object.fromEntries(
+          loadedRoutines.map((routine) => [routine.id, routine.name]),
+        );
+
         setRecentRoutines(
           loadedRoutines.slice(0, 3).map((routine) => ({
             ...routine,
             sessionCount: sessionCountByRoutine[routine.id] ?? 0,
           })),
         );
-        setRoutineNameById(
-          Object.fromEntries(
-            loadedRoutines.map((routine) => [routine.id, routine.name]),
+        setRoutineNameById(nextRoutineNameById);
+        setTrainingSnapshot(
+          buildTrainingSnapshot(
+            loadedSessions,
+            nextRoutineNameById,
+            loadedRoutines.length,
           ),
         );
         setLatestSession(loadedSessions[0] ?? null);
@@ -304,6 +459,193 @@ export default function Home() {
             </div>
           </CardContent>
         </Card>
+      </section>
+
+      <section className="space-y-4">
+        <SectionHeading
+          eyebrow="Training Snapshot"
+          title="기록이 쌓이면 제품 깊이가 바로 보입니다."
+          description="복잡한 차트 라이브러리 없이도 최근 활동량과 루틴 사용 비중이 읽히도록 홈에서 바로 보여줍니다."
+        />
+
+        {isHydratingOverview ? (
+          <Card>
+            <CardContent className="pt-6 text-sm text-white/58">
+              운동 데이터를 집계하는 중...
+            </CardContent>
+          </Card>
+        ) : trainingSnapshot.totalSessions === 0 ? (
+          <Card>
+            <CardContent className="space-y-3 pt-6 text-sm text-white/58">
+              <p>아직 집계할 운동 기록이 없습니다.</p>
+              <p>
+                첫 세션을 저장하면 `총 세션`, `최근 7일 활동`, `루틴 사용
+                비중`이 이 영역에 쌓입니다.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)]">
+            <Card>
+              <CardHeader>
+                <p className="brand-kicker">Session Metrics</p>
+                <CardTitle className="text-3xl">
+                  한눈에 보는 기록 요약
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="glass-field rounded-[1.2rem] px-4 py-4">
+                    <p className="text-xs uppercase tracking-[0.2em] text-white/42">
+                      총 세션
+                    </p>
+                    <p className="mt-3 font-display text-3xl font-semibold tracking-[-0.05em] text-white">
+                      {trainingSnapshot.totalSessions}
+                    </p>
+                    <p className="mt-2 text-sm text-white/52">
+                      저장된 전체 운동 기록 수
+                    </p>
+                  </div>
+                  <div className="glass-field rounded-[1.2rem] px-4 py-4">
+                    <p className="text-xs uppercase tracking-[0.2em] text-white/42">
+                      등록 루틴
+                    </p>
+                    <p className="mt-3 font-display text-3xl font-semibold tracking-[-0.05em] text-white">
+                      {trainingSnapshot.totalRoutines}
+                    </p>
+                    <p className="mt-2 text-sm text-white/52">
+                      홈에서 바로 시작 가능한 루틴 수
+                    </p>
+                  </div>
+                  <div className="glass-field rounded-[1.2rem] px-4 py-4">
+                    <p className="text-xs uppercase tracking-[0.2em] text-white/42">
+                      저장된 세트
+                    </p>
+                    <p className="mt-3 font-display text-3xl font-semibold tracking-[-0.05em] text-white">
+                      {trainingSnapshot.totalSets}
+                    </p>
+                    <p className="mt-2 text-sm text-white/52">
+                      입력과 저장이 완료된 총 세트 수
+                    </p>
+                  </div>
+                  <div className="glass-field rounded-[1.2rem] px-4 py-4">
+                    <p className="text-xs uppercase tracking-[0.2em] text-white/42">
+                      누적 볼륨
+                    </p>
+                    <p className="mt-3 font-display text-3xl font-semibold tracking-[-0.05em] text-white">
+                      {formatCompactNumber(trainingSnapshot.totalVolume)}
+                    </p>
+                    <p className="mt-2 text-sm text-white/52">
+                      weight x reps 기준 합계
+                    </p>
+                  </div>
+                </div>
+
+                <div className="surface-soft flex items-start gap-3 rounded-[1.2rem] px-4 py-4 text-sm text-white/60">
+                  <Activity className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <p className="leading-6">
+                    최근 7일 동안 {trainingSnapshot.sessionsLast7Days}회
+                    기록했고, {trainingSnapshot.activeDaysLast7}일 실제로
+                    운동했습니다.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <p className="brand-kicker">Recent Activity</p>
+                <CardTitle className="text-3xl">최근 7일 활동</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-7 gap-2">
+                  {trainingSnapshot.recentActivity.map((item) => {
+                    const maxSessionCount = Math.max(
+                      1,
+                      ...trainingSnapshot.recentActivity.map(
+                        (entry) => entry.sessionCount,
+                      ),
+                    );
+                    const height =
+                      24 +
+                      Math.round((item.sessionCount / maxSessionCount) * 72);
+
+                    return (
+                      <div
+                        key={item.key}
+                        className="flex flex-col items-center gap-3 rounded-[1.1rem] border border-white/8 bg-white/[0.035] px-2 py-3"
+                      >
+                        <div className="flex h-28 items-end">
+                          <div
+                            className="w-6 rounded-full bg-[linear-gradient(180deg,rgba(111,255,220,0.95),rgba(111,255,220,0.18))] shadow-[0_0_28px_rgba(111,255,220,0.18)]"
+                            style={{
+                              height: `${item.sessionCount === 0 ? 12 : height}px`,
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-1 text-center">
+                          <p className="text-xs uppercase tracking-[0.14em] text-white/40">
+                            {item.label}
+                          </p>
+                          <p className="font-display text-lg tracking-[-0.04em] text-white">
+                            {item.sessionCount}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="text-sm leading-6 text-white/56">
+                  막대 높이는 일자별 세션 수를 의미합니다. 빈 날도 함께 보여줘서
+                  실제 사용 리듬이 읽히도록 구성했습니다.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <p className="brand-kicker">Routine Mix</p>
+                <CardTitle className="text-3xl">루틴 사용 비중</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-3">
+                {trainingSnapshot.routineUsage.map((routine) => (
+                  <div
+                    key={routine.id}
+                    className="glass-field rounded-[1.2rem] px-4 py-4"
+                  >
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-white">
+                          {routine.label}
+                        </p>
+                        <p className="text-sm text-white/52">
+                          {routine.sessionCount}회 기록
+                        </p>
+                      </div>
+                      <div className="hud-chip rounded-[0.9rem] px-3 py-2 text-xs font-medium uppercase tracking-[0.18em] text-white/68">
+                        {routine.share}%
+                      </div>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-white/8">
+                      <div
+                        className="h-full rounded-full bg-[linear-gradient(90deg,rgba(111,255,220,0.95),rgba(106,129,255,0.65))]"
+                        style={{ width: `${Math.max(routine.share, 8)}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+
+                <div className="surface-soft flex items-start gap-3 rounded-[1.2rem] px-4 py-4 text-sm text-white/60">
+                  <BarChart3 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <p className="leading-6">
+                    상위 루틴만 노출해 첫 화면에서 바로 운동 패턴을 읽을 수 있게
+                    했습니다.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </section>
 
       <section className="space-y-4">

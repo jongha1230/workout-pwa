@@ -13,7 +13,7 @@ import {
   YAxis,
 } from "recharts";
 
-type RecentActivityPoint = {
+type WeeklyActivityPoint = {
   key: string;
   label: string;
   sessionCount: number;
@@ -30,7 +30,7 @@ type RoutineInsight = {
 };
 
 type TrainingActivityChartProps = {
-  data: RecentActivityPoint[];
+  data: WeeklyActivityPoint[];
 };
 
 type RoutineShareChartProps = {
@@ -60,11 +60,11 @@ export function TrainingActivityChart({ data }: TrainingActivityChartProps) {
       <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-white/52">
         <span className="inline-flex items-center gap-2">
           <span className="h-2.5 w-2.5 rounded-full bg-primary" />
-          최근 7일 세션 수
+          이번 주 세션 수
         </span>
         <span className="inline-flex items-center gap-2">
           <span className="h-2.5 w-2.5 rounded-full bg-[rgba(255,196,86,0.88)]" />
-          최근 7일 볼륨
+          이번 주 볼륨
         </span>
       </div>
 

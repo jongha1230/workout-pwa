@@ -40,19 +40,17 @@ const SESSION_SHELL_PREFETCH_PATH =
   "/session/11111111-1111-1111-1111-111111111111";
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 const QUICK_SESSION_ID = "__quick_session__";
+const WEEKDAY_LABELS = ["월", "화", "수", "목", "금", "토", "일"];
 const compactNumberFormatter = new Intl.NumberFormat("ko-KR", {
   notation: "compact",
   maximumFractionDigits: 1,
-});
-const weekdayFormatter = new Intl.DateTimeFormat("ko-KR", {
-  weekday: "short",
 });
 
 type HomeRoutineSummary = RoutineRecord & {
   sessionCount: number;
 };
 
-type RecentActivityPoint = {
+type WeeklyActivityPoint = {
   key: string;
   label: string;
   sessionCount: number;
@@ -78,7 +76,7 @@ type TrainingSnapshot = {
   activeDaysLast7: number;
   currentStreak: number;
   bestStreak: number;
-  recentActivity: RecentActivityPoint[];
+  weeklyActivity: WeeklyActivityPoint[];
   routineInsights: RoutineInsight[];
 };
 
@@ -91,7 +89,7 @@ const EMPTY_TRAINING_SNAPSHOT: TrainingSnapshot = {
   activeDaysLast7: 0,
   currentStreak: 0,
   bestStreak: 0,
-  recentActivity: [],
+  weeklyActivity: [],
   routineInsights: [],
 };
 
@@ -116,6 +114,13 @@ const getStartOfDayTimestamp = (timestamp: number) => {
   const date = new Date(timestamp);
   date.setHours(0, 0, 0, 0);
   return date.getTime();
+};
+
+const getWeekStartTimestamp = (timestamp: number) => {
+  const dayStart = getStartOfDayTimestamp(timestamp);
+  const dayOfWeek = new Date(dayStart).getDay();
+  const offsetFromMonday = (dayOfWeek + 6) % 7;
+  return dayStart - offsetFromMonday * DAY_IN_MS;
 };
 
 const getSessionVolume = (session: SessionRecord) =>
@@ -178,20 +183,24 @@ const buildTrainingSnapshot = (
 ): TrainingSnapshot => {
   const todayStart = getStartOfDayTimestamp(Date.now());
   const recentWindowStart = todayStart - 6 * DAY_IN_MS;
+  const currentWeekStart = getWeekStartTimestamp(todayStart);
+  const currentWeekEnd = currentWeekStart + 6 * DAY_IN_MS;
 
-  const recentActivity = Array.from({ length: 7 }, (_, index) => {
-    const dayStart = todayStart - (6 - index) * DAY_IN_MS;
+  const weeklyActivity = WEEKDAY_LABELS.map((label, index) => {
+    const dayStart = currentWeekStart + index * DAY_IN_MS;
     return {
       key: getDateKey(dayStart),
-      label: weekdayFormatter.format(new Date(dayStart)),
+      label,
       sessionCount: 0,
       volume: 0,
     };
   });
-  const recentActivityByKey = new Map(
-    recentActivity.map((point) => [point.key, point]),
+  const weeklyActivityByKey = new Map(
+    weeklyActivity.map((point) => [point.key, point]),
   );
   const activeDaySet = new Set<number>();
+  const activeDaysLast7Set = new Set<number>();
+  let sessionsLast7Days = 0;
 
   const routineInsightMap = sessions.reduce<Record<string, RoutineInsight>>(
     (acc, session) => {
@@ -202,10 +211,15 @@ const buildTrainingSnapshot = (
       activeDaySet.add(dayStart);
 
       if (dayStart >= recentWindowStart) {
-        const recentPoint = recentActivityByKey.get(getDateKey(dayStart));
-        if (recentPoint) {
-          recentPoint.sessionCount += 1;
-          recentPoint.volume += volume;
+        sessionsLast7Days += 1;
+        activeDaysLast7Set.add(dayStart);
+      }
+
+      if (dayStart >= currentWeekStart && dayStart <= currentWeekEnd) {
+        const weeklyPoint = weeklyActivityByKey.get(getDateKey(dayStart));
+        if (weeklyPoint) {
+          weeklyPoint.sessionCount += 1;
+          weeklyPoint.volume += volume;
         }
       }
 
@@ -254,14 +268,8 @@ const buildTrainingSnapshot = (
     (sum, session) => sum + getSessionVolume(session),
     0,
   );
-  const sessionsLast7Days = recentActivity.reduce(
-    (sum, point) => sum + point.sessionCount,
-    0,
-  );
   const activeDayTimestamps = [...activeDaySet];
-  const activeDaysLast7 = recentActivity.filter(
-    (point) => point.sessionCount > 0,
-  ).length;
+  const activeDaysLast7 = activeDaysLast7Set.size;
 
   return {
     totalSessions: sessions.length,
@@ -272,7 +280,7 @@ const buildTrainingSnapshot = (
     activeDaysLast7,
     currentStreak: computeCurrentStreak(activeDayTimestamps, todayStart),
     bestStreak: computeBestStreak(activeDayTimestamps),
-    recentActivity,
+    weeklyActivity,
     routineInsights,
   };
 };
@@ -552,7 +560,7 @@ export default function Home() {
         <SectionHeading
           eyebrow="Training Snapshot"
           title="쌓인 기록이 운동 앱다운 깊이를 만듭니다."
-          description="최근 7일 활동, 연속 streak, 루틴별 사용 비중을 홈에서 바로 읽을 수 있게 확장했습니다."
+          description="이번 주 활동, 최근 7일 리듬, 루틴별 사용 비중을 홈에서 바로 읽을 수 있게 확장했습니다."
         />
 
         {isHydratingOverview ? (
@@ -566,8 +574,8 @@ export default function Home() {
             <CardContent className="space-y-3 pt-6 text-sm text-white/58">
               <p>아직 집계할 운동 기록이 없습니다.</p>
               <p>
-                첫 세션을 저장하면 `총 세션`, `최근 7일 활동`, `루틴 사용
-                비중`이 이 영역에 쌓입니다.
+                첫 세션을 저장하면 `총 세션`, `이번 주 활동`, `루틴 사용 비중`이
+                이 영역에 쌓입니다.
               </p>
             </CardContent>
           </Card>
@@ -639,8 +647,8 @@ export default function Home() {
 
             <Card>
               <CardHeader>
-                <p className="brand-kicker">Streak & Activity</p>
-                <CardTitle className="text-3xl">최근 흐름 차트</CardTitle>
+                <p className="brand-kicker">This Week & Streak</p>
+                <CardTitle className="text-3xl">주간 활동 차트</CardTitle>
               </CardHeader>
               <CardContent className="space-y-5">
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -674,11 +682,12 @@ export default function Home() {
                   </div>
                 </div>
 
-                <TrainingActivityChart data={trainingSnapshot.recentActivity} />
+                <TrainingActivityChart data={trainingSnapshot.weeklyActivity} />
 
                 <p className="text-sm leading-6 text-white/56">
-                  세션 수와 볼륨을 함께 보여줘서, 단순 방문 수가 아니라 실제
-                  훈련 강도 변화도 바로 읽을 수 있게 했습니다.
+                  이번 주 월요일부터 일요일까지의 세션 수와 볼륨을 함께
+                  보여줘서, 주간 리듬과 실제 훈련 강도 변화를 바로 읽을 수 있게
+                  했습니다.
                 </p>
               </CardContent>
             </Card>

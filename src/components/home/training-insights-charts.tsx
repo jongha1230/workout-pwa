@@ -186,7 +186,7 @@ export function RoutineShareChart({ data }: RoutineShareChartProps) {
       <div className="mb-4 flex items-center justify-between gap-3">
         <p className="text-sm text-white/58">세션 비중 기준 상위 루틴</p>
         <p className="text-xs uppercase tracking-[0.18em] text-white/34">
-          Top {data.length}
+          상위 {data.length}
         </p>
       </div>
 

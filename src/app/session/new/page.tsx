@@ -62,11 +62,11 @@ function NewSessionContent() {
   return (
     <PageShell
       density="compact"
-      eyebrow="Fallback Entry"
+      eyebrow="세션 시작"
       title="새 세션"
       description={
         routineId
-          ? `선택된 루틴을 기준으로 새 세션을 시작합니다. 현재 선택: ${selectedRoutineName}`
+          ? `${selectedRoutineName} 루틴으로 새 세션을 시작합니다.`
           : "루틴 없이 바로 세션을 시작합니다."
       }
       actions={
@@ -78,12 +78,12 @@ function NewSessionContent() {
       meta={
         <>
           <StatPill
-            label="Entry"
-            value={routineId ? "Routine-based" : "Quick start"}
+            label="방식"
+            value={routineId ? "루틴으로 시작" : "빠르게 시작"}
             icon={Compass}
           />
-          <StatPill label="Routing" value="Fallback path" icon={Sparkles} />
-          <StatPill label="Next" value="Open editor" icon={Play} />
+          <StatPill label="경로" value="직접 진입" icon={Sparkles} />
+          <StatPill label="다음" value="기록 화면 열기" icon={Play} />
         </>
       }
     >

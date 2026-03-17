@@ -143,7 +143,7 @@ test("starts a session directly from routine detail", async ({ page }) => {
 
   await page.getByRole("button", { name: "이 루틴으로 시작" }).click();
   await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/);
-  await expect(page.getByRole("link", { name: "루틴으로" })).toHaveAttribute(
+  await expect(page.getByRole("link", { name: "루틴 보기" })).toHaveAttribute(
     "href",
     `/routines/${routineId}`,
   );
@@ -266,7 +266,7 @@ test("offline starts create isolated sessions without id collision", async ({
   await page.getByPlaceholder("중량 (예: 60)").first().fill("50");
   await page.getByPlaceholder("횟수 (예: 10)").first().fill("10");
   await page.getByRole("button", { name: "저장" }).click();
-  await expect(page.getByText("Saved session successfully")).toBeVisible();
+  await expect(page.getByText("세션이 저장되었습니다.")).toBeVisible();
 
   await page.goto("/");
   await page.getByRole("button", { name: "세션 시작" }).click();
@@ -283,7 +283,7 @@ test("offline starts create isolated sessions without id collision", async ({
   await page.getByPlaceholder("중량 (예: 60)").first().fill("70");
   await page.getByPlaceholder("횟수 (예: 10)").first().fill("8");
   await page.getByRole("button", { name: "저장" }).click();
-  await expect(page.getByText("Saved session successfully")).toBeVisible();
+  await expect(page.getByText("세션이 저장되었습니다.")).toBeVisible();
 
   await context.setOffline(false);
 
@@ -331,7 +331,7 @@ test("outbox transitions from pending to synced after online recovery", async ({
   await page.getByPlaceholder("중량 (예: 60)").first().fill("40");
   await page.getByPlaceholder("횟수 (예: 10)").first().fill("12");
   await page.getByRole("button", { name: "저장" }).click();
-  await expect(page.getByText("Saved session successfully")).toBeVisible();
+  await expect(page.getByText("세션이 저장되었습니다.")).toBeVisible();
 
   await page.goto("/");
   await page.getByRole("button", { name: "세션 시작" }).click();
@@ -340,7 +340,7 @@ test("outbox transitions from pending to synced after online recovery", async ({
   await page.getByPlaceholder("중량 (예: 60)").first().fill("55");
   await page.getByPlaceholder("횟수 (예: 10)").first().fill("9");
   await page.getByRole("button", { name: "저장" }).click();
-  await expect(page.getByText("Saved session successfully")).toBeVisible();
+  await expect(page.getByText("세션이 저장되었습니다.")).toBeVisible();
 
   const pendingCounts = await readOutboxStatusCounts(page);
   expect(pendingCounts.pending).toBeGreaterThan(0);
@@ -381,7 +381,7 @@ const addAndSaveTwoSets = async (
   await repsInputs.nth(1).fill("8");
 
   await page.getByRole("button", { name: "저장" }).click();
-  await expect(page.getByText("Saved session successfully")).toBeVisible();
+  await expect(page.getByText("세션이 저장되었습니다.")).toBeVisible();
   await expect(page).toHaveURL(new RegExp(`/session/${sessionId}$`));
 };
 
@@ -421,7 +421,7 @@ test("set updates and deletes persist to indexeddb", async ({ page }) => {
   await expect(page.getByPlaceholder("중량 (예: 60)")).toHaveCount(1);
 
   await page.getByRole("button", { name: "저장" }).click();
-  await expect(page.getByText("Saved session successfully")).toBeVisible();
+  await expect(page.getByText("세션이 저장되었습니다.")).toBeVisible();
   await expect(page).toHaveURL(new RegExp(`/session/${sessionId}$`));
 
   await expect

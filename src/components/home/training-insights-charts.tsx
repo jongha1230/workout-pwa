@@ -74,18 +74,6 @@ export function TrainingActivityChart({ data }: TrainingActivityChartProps) {
             data={data}
             margin={{ top: 8, right: 12, left: 10, bottom: 4 }}
           >
-            <defs>
-              <linearGradient
-                id="activity-volume-line"
-                x1="0"
-                x2="0"
-                y1="0"
-                y2="1"
-              >
-                <stop offset="0%" stopColor="rgba(255,196,86,0.92)" />
-                <stop offset="100%" stopColor="rgba(255,196,86,0.18)" />
-              </linearGradient>
-            </defs>
             <CartesianGrid
               stroke="rgba(255,255,255,0.08)"
               strokeDasharray="3 3"
@@ -145,16 +133,23 @@ export function TrainingActivityChart({ data }: TrainingActivityChartProps) {
             />
             <Line
               dataKey="volume"
-              dot={{
-                fill: "rgba(255,196,86,0.95)",
+              activeDot={{
+                fill: "rgba(255,196,86,1)",
                 r: 4,
                 stroke: "rgba(4,10,12,1)",
-                strokeWidth: 2,
+                strokeWidth: 1.5,
+              }}
+              dot={{
+                fill: "rgba(255,196,86,0.95)",
+                r: 3,
+                stroke: "rgba(4,10,12,1)",
+                strokeWidth: 1.5,
               }}
               name="volume"
-              stroke="url(#activity-volume-line)"
+              stroke="rgba(255,196,86,0.95)"
               strokeLinecap="round"
-              strokeWidth={3}
+              strokeLinejoin="round"
+              strokeWidth={4}
               type="linear"
               yAxisId="volume"
             />

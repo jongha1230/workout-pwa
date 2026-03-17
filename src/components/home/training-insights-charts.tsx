@@ -156,12 +156,7 @@ export function TrainingActivityChart({ data }: TrainingActivityChartProps) {
                 stroke: "rgba(4,10,12,1)",
                 strokeWidth: 1.25,
               }}
-              dot={{
-                fill: "rgba(255,196,86,0.95)",
-                r: 2.75,
-                stroke: "rgba(4,10,12,1)",
-                strokeWidth: 1.25,
-              }}
+              dot={false}
               filter="url(#activity-volume-shadow)"
               name="volume"
               stroke="rgba(255,208,120,1)"

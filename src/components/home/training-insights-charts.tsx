@@ -101,7 +101,7 @@ export function TrainingActivityChart({ data }: TrainingActivityChartProps) {
               dataKey="label"
               interval={0}
               minTickGap={0}
-              padding={{ left: 8, right: 8 }}
+              padding={{ left: 8, right: 12 }}
               tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 11 }}
               tickMargin={10}
               tickLine={false}
@@ -151,12 +151,17 @@ export function TrainingActivityChart({ data }: TrainingActivityChartProps) {
             <Line
               dataKey="volume"
               activeDot={{
-                fill: "rgba(255,196,86,1)",
+                fill: "rgba(6,16,20,0.98)",
                 r: 4,
-                stroke: "rgba(4,10,12,1)",
-                strokeWidth: 1.25,
+                stroke: "rgba(255,208,120,1)",
+                strokeWidth: 2,
               }}
-              dot={false}
+              dot={{
+                fill: "rgba(255,208,120,0)",
+                r: 3.25,
+                stroke: "rgba(255,208,120,0.98)",
+                strokeWidth: 1.75,
+              }}
               filter="url(#activity-volume-shadow)"
               name="volume"
               stroke="rgba(255,208,120,1)"

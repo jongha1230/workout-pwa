@@ -13,7 +13,7 @@ import {
   YAxis,
 } from "recharts";
 
-type RecentActivityPoint = {
+type WeeklyActivityPoint = {
   key: string;
   label: string;
   sessionCount: number;
@@ -30,7 +30,7 @@ type RoutineInsight = {
 };
 
 type TrainingActivityChartProps = {
-  data: RecentActivityPoint[];
+  data: WeeklyActivityPoint[];
 };
 
 type RoutineShareChartProps = {
@@ -56,15 +56,15 @@ const getBarColor = (index: number) => {
 
 export function TrainingActivityChart({ data }: TrainingActivityChartProps) {
   return (
-    <div className="rounded-[1.35rem] border border-white/8 bg-white/[0.03] px-3 py-4 sm:px-4">
+    <div className="rounded-[1.35rem] border border-white/8 bg-white/[0.03] px-2.5 py-4 sm:px-4">
       <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-white/52">
         <span className="inline-flex items-center gap-2">
           <span className="h-2.5 w-2.5 rounded-full bg-primary" />
-          최근 7일 세션 수
+          이번 주 세션 수
         </span>
         <span className="inline-flex items-center gap-2">
           <span className="h-2.5 w-2.5 rounded-full bg-[rgba(255,196,86,0.88)]" />
-          최근 7일 볼륨
+          이번 주 볼륨
         </span>
       </div>
 
@@ -72,7 +72,7 @@ export function TrainingActivityChart({ data }: TrainingActivityChartProps) {
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart
             data={data}
-            margin={{ top: 8, right: 8, left: -18, bottom: 0 }}
+            margin={{ top: 8, right: 12, left: 10, bottom: 4 }}
           >
             <defs>
               <linearGradient
@@ -94,7 +94,11 @@ export function TrainingActivityChart({ data }: TrainingActivityChartProps) {
             <XAxis
               axisLine={false}
               dataKey="label"
-              tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 12 }}
+              interval={0}
+              minTickGap={0}
+              padding={{ left: 8, right: 8 }}
+              tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 11 }}
+              tickMargin={10}
               tickLine={false}
             />
             <YAxis
@@ -132,7 +136,7 @@ export function TrainingActivityChart({ data }: TrainingActivityChartProps) {
               separator=" "
             />
             <Bar
-              barSize={22}
+              barSize={18}
               dataKey="sessionCount"
               fill="rgba(111,255,220,0.88)"
               name="sessionCount"
@@ -151,7 +155,7 @@ export function TrainingActivityChart({ data }: TrainingActivityChartProps) {
               stroke="url(#activity-volume-line)"
               strokeLinecap="round"
               strokeWidth={3}
-              type="monotone"
+              type="linear"
               yAxisId="volume"
             />
           </ComposedChart>

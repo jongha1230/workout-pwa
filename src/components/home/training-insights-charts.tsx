@@ -72,7 +72,7 @@ export function TrainingActivityChart({ data }: TrainingActivityChartProps) {
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart
             data={data}
-            margin={{ top: 8, right: 16, left: 10, bottom: 4 }}
+            margin={{ top: 8, right: 12, left: 10, bottom: 4 }}
           >
             <defs>
               <filter
@@ -101,7 +101,7 @@ export function TrainingActivityChart({ data }: TrainingActivityChartProps) {
               dataKey="label"
               interval={0}
               minTickGap={0}
-              padding={{ left: 8, right: 16 }}
+              padding={{ left: 8, right: 12 }}
               tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 11 }}
               tickMargin={10}
               tickLine={false}
@@ -152,22 +152,22 @@ export function TrainingActivityChart({ data }: TrainingActivityChartProps) {
               dataKey="volume"
               activeDot={{
                 fill: "rgba(6,16,20,0.98)",
-                r: 5,
+                r: 4,
                 stroke: "rgba(255,208,120,1)",
-                strokeWidth: 2.2,
+                strokeWidth: 2,
               }}
               dot={{
                 fill: "rgba(255,208,120,0)",
-                r: 2.35,
-                stroke: "rgba(255,208,120,0.84)",
-                strokeWidth: 1.35,
+                r: 3.25,
+                stroke: "rgba(255,208,120,0.98)",
+                strokeWidth: 1.75,
               }}
               filter="url(#activity-volume-shadow)"
               name="volume"
-              stroke="rgba(255,214,140,1)"
+              stroke="rgba(255,208,120,1)"
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth={4.9}
+              strokeWidth={4.5}
               type="linear"
               yAxisId="volume"
             />

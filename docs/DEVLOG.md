@@ -7,6 +7,7 @@
 - 간판 포트폴리오 프로젝트로 보이도록 전체 브랜딩을 다시 정리했다.
 - 기존의 밝은 카드형 UI를 버리고, 어두운 유리 패널과 네온 포인트 중심의 `tactical glass` 톤으로 재설계했다.
 - 특히 세션 화면을 단순 폼이 아닌 `session console` 구조로 바꿔 제품 밀도와 시각적 신뢰를 높였다.
+- 후속 정리로 홈에 `chart-based training insights`를 추가해 최근 활동량과 루틴 사용 비중이 바로 읽히도록 확장했다.
 
 ### 구현
 
@@ -16,6 +17,7 @@
   - 디스플레이 폰트를 `Rajdhani` 기반으로 변경
 - 핵심 화면 리디자인
   - 홈: 최근 세션 재개, 루틴 빠른 시작, 첫 진입 CTA를 강조한 dashboard 구성
+  - 홈 후속: `recharts` 기반 최근 7일 활동 / streak / 루틴 사용 비중 차트 추가
   - 루틴 목록: 카드에서 바로 세션 시작 가능한 library 형태로 정리
   - 루틴 상세: 편집 패널과 저장된 세션 목록의 밀도 조정
   - 루틴 생성: builder 느낌의 입력 화면으로 재정리
@@ -40,19 +42,18 @@
 - [Session Editor](./evidence/2026-03-16/04-session-editor-filled.png)
 - [Routine Builder](./evidence/2026-03-16/05-routine-builder.png)
 - [Validation Error](./evidence/2026-03-16/06-validation-error.png)
+- [Home Dashboard Mobile](./evidence/2026-03-16/07-home-dashboard-mobile.png)
 
 ### Repro / Verify
 
 1. `npm run lint`
 2. `npm run typecheck`
 3. `npm run build`
-4. `$env:PLAYWRIGHT_PORT='3100'; npm run test:e2e`
+4. `$env:CI='1'; $env:PLAYWRIGHT_PORT='3100'; npm run test:e2e`
 
 결과:
 
-- `8 passed`
-- `3 skipped`  
-  CI 전용 offline/service worker 시나리오
+- `11 passed`
 
 ### 배운 점
 

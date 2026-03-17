@@ -3,7 +3,7 @@
 로컬 저장을 기본으로 삼은 운동 기록 PWA입니다.  
 핵심 목표는 네트워크가 불안정해도 기록 흐름이 끊기지 않는 것, 그리고 포트폴리오에서 제품 완성도가 바로 보이도록 만드는 것입니다.
 
-현재 버전은 기능 중심 MVP에서 한 단계 더 나아가, `빠른 진입`, `최근 세션 재개`, `루틴 기반 시작`, `전술 HUD 톤의 세션 에디터`까지 제품 경험 전체를 다시 정리했습니다.
+현재 버전은 기능 중심 MVP에서 한 단계 더 나아가, `빠른 진입`, `최근 세션 재개`, `루틴 기반 시작`, `chart-based training insights`, `전술 HUD 톤의 세션 에디터`까지 제품 경험 전체를 다시 정리했습니다.
 
 ## Latest UI (2026-03-16)
 
@@ -18,11 +18,13 @@
 - [Routine Detail Edit](./docs/evidence/2026-03-16/03-routine-detail-edit.png)
 - [Routine Builder](./docs/evidence/2026-03-16/05-routine-builder.png)
 - [Validation Error](./docs/evidence/2026-03-16/06-validation-error.png)
+- [Home Dashboard Mobile](./docs/evidence/2026-03-16/07-home-dashboard-mobile.png)
 
 ## Product Highlights
 
 - 홈에서 `세션 시작`, `최근 세션 이어가기`, `루틴 보기`를 한 화면에 배치해 첫 진입 흐름을 짧게 만들었습니다.
 - 루틴 목록에서 상세를 거치지 않고 바로 세션을 시작할 수 있습니다.
+- 홈 `Training Snapshot`에서 최근 7일 활동, streak, 루틴별 사용 비중을 실제 차트로 읽을 수 있습니다.
 - 세션 화면은 단순 폼이 아니라, 상태 요약과 입력 규칙을 함께 보여주는 `session console` 형태로 재구성했습니다.
 - 전체 UI는 어두운 유리 패널과 네온 포인트를 사용하는 `tactical glass` 무드로 정리했습니다.
 
@@ -51,6 +53,11 @@
 - 새 세트는 직전 세트 값을 기본값으로 이어받습니다.
 - 반복 입력량을 줄여 실제 운동 상황에 맞는 기록 흐름을 만들었습니다.
 
+### 5. Chart-based Insights
+
+- `recharts`를 사용해 최근 7일 활동과 루틴별 사용 비중을 홈에서 바로 시각화합니다.
+- 별도 API 없이 로컬에 저장된 세션/루틴 데이터만 집계해 제품 깊이를 보여줍니다.
+
 ## Demo Scenario
 
 1. 홈에서 `세션 시작` 또는 `최근 세션 이어가기`를 선택합니다.
@@ -66,13 +73,11 @@
 - `npm run lint`
 - `npm run typecheck`
 - `npm run build`
-- `$env:PLAYWRIGHT_PORT='3100'; npm run test:e2e`
+- `$env:CI='1'; $env:PLAYWRIGHT_PORT='3100'; npm run test:e2e`
 
 결과:
 
-- `8 passed`
-- `3 skipped`  
-  CI 전용 offline/service worker 시나리오입니다.
+- `11 passed`
 
 ## Tech Stack
 

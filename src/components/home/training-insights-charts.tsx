@@ -74,6 +74,23 @@ export function TrainingActivityChart({ data }: TrainingActivityChartProps) {
             data={data}
             margin={{ top: 8, right: 12, left: 10, bottom: 4 }}
           >
+            <defs>
+              <filter
+                id="activity-volume-shadow"
+                x="-20%"
+                y="-20%"
+                width="140%"
+                height="140%"
+              >
+                <feDropShadow
+                  dx="0"
+                  dy="0"
+                  floodColor="rgba(4,10,12,0.92)"
+                  floodOpacity="0.88"
+                  stdDeviation="1.2"
+                />
+              </filter>
+            </defs>
             <CartesianGrid
               stroke="rgba(255,255,255,0.08)"
               strokeDasharray="3 3"
@@ -137,19 +154,20 @@ export function TrainingActivityChart({ data }: TrainingActivityChartProps) {
                 fill: "rgba(255,196,86,1)",
                 r: 4,
                 stroke: "rgba(4,10,12,1)",
-                strokeWidth: 1.5,
+                strokeWidth: 1.25,
               }}
               dot={{
                 fill: "rgba(255,196,86,0.95)",
-                r: 3,
+                r: 2.75,
                 stroke: "rgba(4,10,12,1)",
-                strokeWidth: 1.5,
+                strokeWidth: 1.25,
               }}
+              filter="url(#activity-volume-shadow)"
               name="volume"
-              stroke="rgba(255,196,86,0.95)"
+              stroke="rgba(255,208,120,1)"
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth={4}
+              strokeWidth={4.5}
               type="linear"
               yAxisId="volume"
             />

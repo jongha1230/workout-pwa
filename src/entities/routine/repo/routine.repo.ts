@@ -1,30 +1,40 @@
-import { db, type RoutineRecord } from "@/lib/db";
+import {
+  RoutineTemplateSchema,
+  type RoutineTemplateInput,
+} from "@/entities/model/routine/model/routine.schema";
+import { db, normalizeRoutineExercises, type RoutineRecord } from "@/lib/db";
 import { appendOutboxEvent } from "@/lib/sync/outbox.repo";
 
-type CreateRoutineInput = {
-  name: string;
-  description?: string | null;
-};
+type CreateRoutineInput = RoutineTemplateInput;
+type UpdateRoutineInput = RoutineTemplateInput;
 
-type UpdateRoutineInput = {
-  name?: string;
-  description?: string | null;
-};
+const normalizeRoutineRecord = (routine: RoutineRecord): RoutineRecord => ({
+  ...routine,
+  description: routine.description ?? null,
+  exercises: normalizeRoutineExercises(routine.exercises),
+});
 
-const normalizeDescription = (description?: string | null): string | null => {
-  if (!description) return null;
-  const trimmed = description.trim();
-  return trimmed.length > 0 ? trimmed : null;
+const parseRoutineInput = (
+  input: CreateRoutineInput | UpdateRoutineInput,
+): RoutineTemplateInput => {
+  const parsed = RoutineTemplateSchema.parse(input);
+
+  return {
+    ...parsed,
+    exercises: normalizeRoutineExercises(parsed.exercises),
+  };
 };
 
 export async function createRoutine(
   input: CreateRoutineInput,
 ): Promise<RoutineRecord> {
   const now = Date.now();
+  const parsedInput = parseRoutineInput(input);
   const record: RoutineRecord = {
     id: crypto.randomUUID(),
-    name: input.name.trim(),
-    description: normalizeDescription(input.description),
+    name: parsedInput.name,
+    description: parsedInput.description,
+    exercises: parsedInput.exercises,
     createdAt: now,
     updatedAt: now,
   };
@@ -38,19 +48,21 @@ export async function createRoutine(
       id: record.id,
       name: record.name,
       description: record.description,
+      exercises: record.exercises,
       createdAt: record.createdAt,
     },
   });
-  return record;
+  return normalizeRoutineRecord(record);
 }
 
 export async function getRoutine(id: string): Promise<RoutineRecord | null> {
   const routine = await db.routines.get(id);
-  return routine ?? null;
+  return routine ? normalizeRoutineRecord(routine) : null;
 }
 
 export async function listRoutines(): Promise<RoutineRecord[]> {
-  return db.routines.orderBy("updatedAt").reverse().toArray();
+  const routines = await db.routines.orderBy("updatedAt").reverse().toArray();
+  return routines.map(normalizeRoutineRecord);
 }
 
 export async function updateRoutine(
@@ -59,14 +71,13 @@ export async function updateRoutine(
 ): Promise<RoutineRecord | null> {
   const existing = await db.routines.get(id);
   if (!existing) return null;
+  const parsedInput = parseRoutineInput(input);
 
   const nextRecord: RoutineRecord = {
     ...existing,
-    name: input.name ? input.name.trim() : existing.name,
-    description:
-      input.description !== undefined
-        ? normalizeDescription(input.description)
-        : existing.description,
+    name: parsedInput.name,
+    description: parsedInput.description,
+    exercises: parsedInput.exercises,
     updatedAt: Date.now(),
   };
 
@@ -79,10 +90,11 @@ export async function updateRoutine(
       id: nextRecord.id,
       name: nextRecord.name,
       description: nextRecord.description,
+      exercises: nextRecord.exercises,
       updatedAt: nextRecord.updatedAt,
     },
   });
-  return nextRecord;
+  return normalizeRoutineRecord(nextRecord);
 }
 
 export async function deleteRoutine(id: string): Promise<void> {

@@ -16,12 +16,16 @@ const startSession = async (page: import("@playwright/test").Page) => {
 const createRoutineAndOpenDetail = async (
   page: import("@playwright/test").Page,
 ) => {
-  await page.goto("/routines/new");
-
   const routineName = `E2E Routine ${Date.now()}`;
-  await page.getByPlaceholder("루틴 이름 (예: Upper Body)").fill(routineName);
-  await page.getByRole("button", { name: "생성" }).click();
-  await expect(page).toHaveURL(/\/routines\/[0-9a-f-]{36}$/);
+  await createRoutineTemplate(page, {
+    name: routineName,
+    exercises: [
+      {
+        name: "Bench Press",
+        targetSets: "3",
+      },
+    ],
+  });
 
   const match = page.url().match(/\/routines\/([^/?#]+)/);
   if (!match) {
@@ -29,6 +33,57 @@ const createRoutineAndOpenDetail = async (
   }
 
   return match[1];
+};
+
+const fillRoutineExercise = async (
+  page: import("@playwright/test").Page,
+  index: number,
+  input: {
+    name: string;
+    targetSets: string;
+    note?: string;
+  },
+) => {
+  await page
+    .getByPlaceholder("예: Barbell Bench Press")
+    .nth(index)
+    .fill(input.name);
+  await page.getByLabel("목표 세트 수").nth(index).fill(input.targetSets);
+
+  if (input.note !== undefined) {
+    await page.getByLabel("운동 메모").nth(index).fill(input.note);
+  }
+};
+
+const createRoutineTemplate = async (
+  page: import("@playwright/test").Page,
+  input: {
+    name: string;
+    description?: string;
+    exercises: Array<{
+      name: string;
+      targetSets: string;
+      note?: string;
+    }>;
+  },
+) => {
+  await page.goto("/routines/new");
+  await page.getByPlaceholder("루틴 이름 (예: Upper Body)").fill(input.name);
+
+  if (input.description) {
+    await page.getByLabel("루틴 설명").fill(input.description);
+  }
+
+  for (let index = 0; index < input.exercises.length; index += 1) {
+    if (index > 0) {
+      await page.getByRole("button", { name: "운동 추가" }).click();
+    }
+
+    await fillRoutineExercise(page, index, input.exercises[index]);
+  }
+
+  await page.getByRole("button", { name: "생성" }).click();
+  await expect(page).toHaveURL(/\/routines\/[0-9a-f-]{36}$/);
 };
 
 const readOutboxStatusCounts = async (
@@ -143,9 +198,79 @@ test("starts a session directly from routine detail", async ({ page }) => {
 
   await page.getByRole("button", { name: "이 루틴으로 시작" }).click();
   await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/);
-  await expect(page.getByRole("link", { name: "루틴으로" })).toHaveAttribute(
+  await expect(page.getByRole("link", { name: "루틴 보기" })).toHaveAttribute(
     "href",
     `/routines/${routineId}`,
+  );
+});
+
+test("routine template persists after create and reload", async ({ page }) => {
+  await createRoutineTemplate(page, {
+    name: `Template Upper ${Date.now()}`,
+    description: "벤치 중심 상체 루틴",
+    exercises: [
+      {
+        name: "Barbell Bench Press",
+        targetSets: "4",
+        note: "메인 리프트",
+      },
+      {
+        name: "Incline Dumbbell Press",
+        targetSets: "3",
+      },
+    ],
+  });
+
+  await expect(page.getByText("Barbell Bench Press")).toBeVisible();
+  await expect(page.getByText("Incline Dumbbell Press")).toBeVisible();
+  await expect(page.getByText("목표 세트 4개")).toBeVisible();
+  await expect(page.getByText("메인 리프트")).toBeVisible();
+
+  await page.reload();
+
+  await expect(page.getByText("Barbell Bench Press")).toBeVisible();
+  await expect(page.getByText("Incline Dumbbell Press")).toBeVisible();
+  await expect(page.getByText("목표 세트 4개")).toBeVisible();
+});
+
+test("routine template edit preserves reorder and removal after reload", async ({
+  page,
+}) => {
+  await createRoutineTemplate(page, {
+    name: `Template Lower ${Date.now()}`,
+    exercises: [
+      {
+        name: "Back Squat",
+        targetSets: "4",
+      },
+      {
+        name: "Romanian Deadlift",
+        targetSets: "3",
+      },
+    ],
+  });
+
+  await page.getByRole("button", { name: "루틴 편집" }).click();
+  await page.getByRole("button", { name: "운동 2 위로 이동" }).click();
+  await page.getByRole("button", { name: "운동 2 삭제" }).click();
+  await page
+    .getByLabel("운동 메모")
+    .nth(0)
+    .fill("세션 시작 시 첫 운동으로 seed 예정");
+  await page.getByRole("button", { name: "루틴 저장" }).click();
+
+  await expect(page.getByText("Romanian Deadlift")).toBeVisible();
+  await expect(page.getByText("Back Squat")).toHaveCount(0);
+
+  await page.reload();
+  await page.getByRole("button", { name: "루틴 편집" }).click();
+
+  await expect(page.getByPlaceholder("예: Barbell Bench Press")).toHaveCount(1);
+  await expect(page.getByPlaceholder("예: Barbell Bench Press")).toHaveValue(
+    "Romanian Deadlift",
+  );
+  await expect(page.getByLabel("운동 메모")).toHaveValue(
+    "세션 시작 시 첫 운동으로 seed 예정",
   );
 });
 
@@ -266,7 +391,7 @@ test("offline starts create isolated sessions without id collision", async ({
   await page.getByPlaceholder("중량 (예: 60)").first().fill("50");
   await page.getByPlaceholder("횟수 (예: 10)").first().fill("10");
   await page.getByRole("button", { name: "저장" }).click();
-  await expect(page.getByText("Saved session successfully")).toBeVisible();
+  await expect(page.getByText("세션이 저장되었습니다.")).toBeVisible();
 
   await page.goto("/");
   await page.getByRole("button", { name: "세션 시작" }).click();
@@ -283,7 +408,7 @@ test("offline starts create isolated sessions without id collision", async ({
   await page.getByPlaceholder("중량 (예: 60)").first().fill("70");
   await page.getByPlaceholder("횟수 (예: 10)").first().fill("8");
   await page.getByRole("button", { name: "저장" }).click();
-  await expect(page.getByText("Saved session successfully")).toBeVisible();
+  await expect(page.getByText("세션이 저장되었습니다.")).toBeVisible();
 
   await context.setOffline(false);
 
@@ -331,7 +456,7 @@ test("outbox transitions from pending to synced after online recovery", async ({
   await page.getByPlaceholder("중량 (예: 60)").first().fill("40");
   await page.getByPlaceholder("횟수 (예: 10)").first().fill("12");
   await page.getByRole("button", { name: "저장" }).click();
-  await expect(page.getByText("Saved session successfully")).toBeVisible();
+  await expect(page.getByText("세션이 저장되었습니다.")).toBeVisible();
 
   await page.goto("/");
   await page.getByRole("button", { name: "세션 시작" }).click();
@@ -340,7 +465,7 @@ test("outbox transitions from pending to synced after online recovery", async ({
   await page.getByPlaceholder("중량 (예: 60)").first().fill("55");
   await page.getByPlaceholder("횟수 (예: 10)").first().fill("9");
   await page.getByRole("button", { name: "저장" }).click();
-  await expect(page.getByText("Saved session successfully")).toBeVisible();
+  await expect(page.getByText("세션이 저장되었습니다.")).toBeVisible();
 
   const pendingCounts = await readOutboxStatusCounts(page);
   expect(pendingCounts.pending).toBeGreaterThan(0);
@@ -381,7 +506,7 @@ const addAndSaveTwoSets = async (
   await repsInputs.nth(1).fill("8");
 
   await page.getByRole("button", { name: "저장" }).click();
-  await expect(page.getByText("Saved session successfully")).toBeVisible();
+  await expect(page.getByText("세션이 저장되었습니다.")).toBeVisible();
   await expect(page).toHaveURL(new RegExp(`/session/${sessionId}$`));
 };
 
@@ -421,7 +546,7 @@ test("set updates and deletes persist to indexeddb", async ({ page }) => {
   await expect(page.getByPlaceholder("중량 (예: 60)")).toHaveCount(1);
 
   await page.getByRole("button", { name: "저장" }).click();
-  await expect(page.getByText("Saved session successfully")).toBeVisible();
+  await expect(page.getByText("세션이 저장되었습니다.")).toBeVisible();
   await expect(page).toHaveURL(new RegExp(`/session/${sessionId}$`));
 
   await expect

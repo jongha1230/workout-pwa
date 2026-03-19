@@ -18,9 +18,9 @@ import {
   SectionHeading,
   StatPill,
 } from "@/components/brand/page-shell";
+import { RoutineTemplateForm } from "@/components/routine/routine-template-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   deleteRoutine,
   getRoutine,
@@ -49,13 +49,10 @@ export default function RoutineDetailPage() {
   const [isDeletingRoutine, setIsDeletingRoutine] = useState(false);
   const [isStartingSession, setIsStartingSession] = useState(false);
   const [isEditingRoutine, setIsEditingRoutine] = useState(false);
-  const [isSavingRoutine, setIsSavingRoutine] = useState(false);
   const [deletingSessionId, setDeletingSessionId] = useState<string | null>(
     null,
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [draftName, setDraftName] = useState("");
-  const [draftDescription, setDraftDescription] = useState("");
 
   useEffect(() => {
     if (!routineId) return;
@@ -74,8 +71,6 @@ export default function RoutineDetailPage() {
         }
 
         setRoutine(loadedRoutine);
-        setDraftName(loadedRoutine.name);
-        setDraftDescription(loadedRoutine.description ?? "");
         setSessions(loadedSessions);
       })
       .catch(() => {
@@ -135,41 +130,6 @@ export default function RoutineDetailPage() {
     router.push(`/session/${encodeURIComponent(sessionId)}`);
   };
 
-  const handleSaveRoutine = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!routine || isSavingRoutine) return;
-
-    const trimmedName = draftName.trim();
-    if (trimmedName.length === 0) {
-      setErrorMessage("루틴 이름을 입력해 주세요.");
-      return;
-    }
-
-    setIsSavingRoutine(true);
-    setErrorMessage(null);
-
-    try {
-      const updated = await updateRoutine(routine.id, {
-        name: trimmedName,
-        description: draftDescription,
-      });
-
-      if (!updated) {
-        setErrorMessage("루틴을 찾을 수 없습니다.");
-        return;
-      }
-
-      setRoutine(updated);
-      setDraftName(updated.name);
-      setDraftDescription(updated.description ?? "");
-      setIsEditingRoutine(false);
-    } catch {
-      setErrorMessage("루틴 수정에 실패했습니다.");
-    } finally {
-      setIsSavingRoutine(false);
-    }
-  };
-
   const handleStartSession = async () => {
     if (!routine || isStartingSession) return;
 
@@ -203,6 +163,12 @@ export default function RoutineDetailPage() {
     totalSets === 0
       ? "0%"
       : `${Math.round((completedSets / totalSets) * 100)}%`;
+  const plannedExerciseCount = routine?.exercises.length ?? 0;
+  const plannedTargetSets =
+    routine?.exercises.reduce(
+      (sum, exercise) => sum + exercise.targetSets,
+      0,
+    ) ?? 0;
 
   return (
     <PageShell
@@ -298,52 +264,87 @@ export default function RoutineDetailPage() {
           {isEditingRoutine ? (
             <Card>
               <CardContent className="pt-6">
-                <form
-                  className="flex flex-col gap-4"
-                  onSubmit={handleSaveRoutine}
-                >
-                  <label className="space-y-2">
-                    <span className="text-sm font-medium text-white/74">
-                      루틴 이름
-                    </span>
-                    <Input
-                      value={draftName}
-                      onChange={(event) => setDraftName(event.target.value)}
-                    />
-                  </label>
-                  <label className="space-y-2">
-                    <span className="text-sm font-medium text-white/74">
-                      설명
-                    </span>
-                    <textarea
-                      className="glass-field min-h-32 w-full rounded-[1rem] px-4 py-3 text-sm leading-7 text-white outline-none placeholder:text-white/36 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                      value={draftDescription}
-                      onChange={(event) =>
-                        setDraftDescription(event.target.value)
-                      }
-                    />
-                  </label>
-                  <div className="flex flex-wrap gap-3">
-                    <Button type="submit" size="sm" disabled={isSavingRoutine}>
-                      {isSavingRoutine ? "저장 중..." : "루틴 저장"}
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setDraftName(routine.name);
-                        setDraftDescription(routine.description ?? "");
-                        setIsEditingRoutine(false);
-                      }}
-                    >
-                      취소
-                    </Button>
-                  </div>
-                </form>
+                <RoutineTemplateForm
+                  initialValue={routine}
+                  submitLabel="루틴 저장"
+                  submittingLabel="저장 중..."
+                  onCancel={() => {
+                    setIsEditingRoutine(false);
+                    setErrorMessage(null);
+                  }}
+                  onSubmit={async (input) => {
+                    const updated = await updateRoutine(routine.id, input);
+
+                    if (!updated) {
+                      throw new Error("루틴을 찾을 수 없습니다.");
+                    }
+
+                    setRoutine(updated);
+                    setIsEditingRoutine(false);
+                    setErrorMessage(null);
+                  }}
+                />
               </CardContent>
             </Card>
           ) : null}
+
+          <section className="space-y-4">
+            <SectionHeading
+              eyebrow="Routine Template"
+              title="운동 템플릿"
+              description={`이 루틴은 ${plannedExerciseCount}개의 운동 블록과 ${plannedTargetSets}개 목표 세트를 담고 있습니다.`}
+            />
+
+            {routine.exercises.length === 0 ? (
+              <EmptyStatePanel
+                title="아직 운동 템플릿이 없습니다."
+                description="기존 루틴 데이터일 가능성이 있습니다. 루틴 편집에서 운동 블록을 추가하면, 이후 세션 시작 흐름에 연결할 수 있는 구조가 생깁니다."
+                action={
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setIsEditingRoutine(true);
+                      setErrorMessage(null);
+                    }}
+                  >
+                    운동 템플릿 추가
+                  </Button>
+                }
+              />
+            ) : (
+              <div className="grid gap-4">
+                {routine.exercises.map((exercise, index) => (
+                  <Card key={exercise.id}>
+                    <CardContent className="flex flex-col gap-4 pt-6 md:flex-row md:items-start md:justify-between">
+                      <div className="space-y-2">
+                        <span className="brand-kicker">
+                          Exercise {index + 1}
+                        </span>
+                        <div className="space-y-1">
+                          <p className="font-display text-2xl font-semibold tracking-[-0.05em] text-white">
+                            {exercise.name}
+                          </p>
+                          <p className="text-sm text-white/54">
+                            목표 세트 {exercise.targetSets}개
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="max-w-xl space-y-3">
+                        <span className="hud-chip inline-flex rounded-[0.9rem] px-3 py-2 text-xs font-medium uppercase tracking-[0.18em] text-white/62">
+                          Ordered template block
+                        </span>
+                        <p className="text-sm leading-7 text-white/56">
+                          {exercise.note ??
+                            "추가 메모는 없습니다. 필요한 경우 템포, 워밍업 규칙, 장비 조건을 남길 수 있습니다."}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </section>
 
           <SectionHeading
             eyebrow="Saved Sessions"

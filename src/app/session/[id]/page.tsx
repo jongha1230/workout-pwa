@@ -42,19 +42,17 @@ type DraftSet = {
 
 const SESSION_RULES = [
   {
-    label: "Rule 01",
-    description:
-      "새 세트는 직전 세트 값을 자동으로 이어받아 반복 입력을 줄입니다.",
+    label: "입력 규칙 1",
+    description: "새 세트는 직전 세트 값을 이어받아 반복 입력을 줄입니다.",
   },
   {
-    label: "Rule 02",
-    description:
-      "완료 표시 전에도 입력 검증을 수행해 잘못된 상태 저장을 막습니다.",
+    label: "입력 규칙 2",
+    description: "완료 표시 전에 입력값을 확인해 잘못된 저장을 막습니다.",
   },
   {
-    label: "Rule 03",
+    label: "입력 규칙 3",
     description:
-      "IndexedDB 기반 local-first 저장으로 네트워크와 분리된 기록 흐름을 유지합니다.",
+      "기록은 기기에 저장되어 오프라인에서도 다시 이어서 볼 수 있습니다.",
   },
 ] as const;
 
@@ -77,7 +75,7 @@ function SessionStateShell({
   return (
     <PageShell
       density="compact"
-      eyebrow="Session"
+      eyebrow="세션"
       title={title}
       description={description}
       actions={
@@ -86,19 +84,19 @@ function SessionStateShell({
             <Link href="/">홈으로</Link>
           </Button>
           <Button asChild size="lg" variant="outline">
-            <Link href="/routines">루틴으로</Link>
+            <Link href="/routines">루틴 목록</Link>
           </Button>
         </>
       }
       meta={
         <>
           <StatPill
-            label="Session ID"
-            value={sessionId ? sessionId.slice(0, 8) : "N/A"}
+            label="세션 ID"
+            value={sessionId ? sessionId.slice(0, 8) : "없음"}
             icon={Hash}
           />
-          <StatPill label="Storage" value="Local-first" icon={ShieldCheck} />
-          <StatPill label="Mode" value="Read-only state" icon={Save} />
+          <StatPill label="저장 방식" value="로컬 저장" icon={ShieldCheck} />
+          <StatPill label="화면 상태" value="안내 화면" icon={Save} />
         </>
       }
     >
@@ -124,7 +122,7 @@ function CompactSessionSummary({
         <div className="grid grid-cols-3 gap-2">
           <div className="glass-field rounded-[1rem] px-3 py-3">
             <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-white/42">
-              Sets
+              세트
             </p>
             <p className="mt-2 font-display text-2xl font-semibold tracking-[-0.05em] text-white">
               {totalSets}
@@ -132,7 +130,7 @@ function CompactSessionSummary({
           </div>
           <div className="glass-field rounded-[1rem] px-3 py-3">
             <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-white/42">
-              Done
+              완료
             </p>
             <p className="mt-2 font-display text-2xl font-semibold tracking-[-0.05em] text-white">
               {completedCount}
@@ -140,7 +138,7 @@ function CompactSessionSummary({
           </div>
           <div className="glass-field rounded-[1rem] px-3 py-3">
             <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-white/42">
-              Rate
+              완료율
             </p>
             <p className="mt-2 font-display text-2xl font-semibold tracking-[-0.05em] text-white">
               {completionRate}
@@ -193,7 +191,7 @@ export default function SessionDetailPage() {
   const [activeSetId, setActiveSetId] = useState<string | null>(null);
   const [sessionTitle, setSessionTitle] = useState("세션");
   const [sessionDescription, setSessionDescription] = useState(
-    "세트를 여러 개 추가/수정/삭제할 수 있습니다.",
+    "세트를 추가하고 저장할 수 있습니다.",
   );
   const [routineLinkHref, setRoutineLinkHref] = useState("/routines");
   const [isHydrating, setIsHydrating] = useState(true);
@@ -219,7 +217,7 @@ export default function SessionDetailPage() {
       setLoadErrorMessage(null);
       setErrorMessage(null);
       setSessionTitle("세션");
-      setSessionDescription("세트를 여러 개 추가/수정/삭제할 수 있습니다.");
+      setSessionDescription("세트를 추가하고 저장할 수 있습니다.");
       setRoutineLinkHref("/routines");
 
       if (!SESSION_ID_PATTERN.test(sessionId)) {
@@ -270,8 +268,7 @@ export default function SessionDetailPage() {
         if (!cancelled) {
           setSessionTitle(routine?.name ?? "루틴 세션");
           setSessionDescription(
-            routine?.description ??
-              "세트를 여러 개 추가/수정/삭제할 수 있습니다.",
+            routine?.description ?? "세트를 추가하고 저장할 수 있습니다.",
           );
           setRoutineLinkHref(`/routines/${currentSession.routineId}`);
         }
@@ -460,7 +457,7 @@ export default function SessionDetailPage() {
       await replaceSets(sessionId, nextSets);
       await flushSyncEngine();
       setErrorMessage(null);
-      toast.success("Saved session successfully");
+      toast.success("세션이 저장되었습니다.");
     } catch (error) {
       console.error("Failed to save session.", error);
       const message = "세션 저장에 실패했습니다. 다시 시도해 주세요.";
@@ -487,7 +484,7 @@ export default function SessionDetailPage() {
         <Toaster position="top-right" />
         <SessionStateShell
           title="세션 불러오는 중..."
-          description="로컬에 저장된 세트와 루틴 정보를 연결하고 있습니다."
+          description="저장된 세트와 루틴 정보를 불러오고 있습니다."
           sessionId={sessionId}
         />
       </>
@@ -518,26 +515,26 @@ export default function SessionDetailPage() {
       />
       <PageShell
         density="compact"
-        eyebrow="Active Session"
+        eyebrow="진행 중인 세션"
         title={sessionTitle}
         description={sessionDescription}
         meta={
           <>
             <StatPill
-              label="Sets"
-              value={`${safeSets.length} ready`}
+              label="세트"
+              value={`${safeSets.length}개`}
               icon={Hash}
               className="hidden sm:flex"
             />
             <StatPill
-              label="Completion"
+              label="완료"
               value={`${completedCount}/${safeSets.length} · ${completionRate}`}
               icon={CheckCircle2}
               className="hidden sm:flex"
             />
             <StatPill
-              label="Source"
-              value="Local-first"
+              label="저장"
+              value="로컬 저장"
               icon={ShieldCheck}
               className="hidden sm:flex"
             />
@@ -550,18 +547,18 @@ export default function SessionDetailPage() {
               <Card className="z-10 border-primary/10 bg-[linear-gradient(180deg,rgba(10,19,22,0.92),rgba(6,12,15,0.86))] sm:sticky sm:top-4">
                 <CardContent className="flex flex-col gap-4 px-4 pt-4 sm:px-6 sm:pt-6 lg:flex-row lg:items-center lg:justify-between">
                   <div className="space-y-2">
-                    <p className="brand-kicker !text-primary/90">Command Bar</p>
+                    <p className="brand-kicker !text-primary/90">세트 기록</p>
                     <div className="space-y-1">
                       <p className="font-display text-2xl font-semibold tracking-[-0.05em] text-white">
-                        세트 편집
+                        세트 입력
                       </p>
                       <p className="text-sm leading-6 text-white/54">
                         <span className="sm:hidden">
-                          세트 추가와 저장을 먼저 두고, 보조 설명은 접었습니다.
+                          세트를 추가하고 필요한 값을 입력한 뒤 저장하세요.
                         </span>
                         <span className="hidden sm:inline">
-                          직전 값 자동 채움과 저장 시점 검증을 유지하면서,
-                          액션은 상단에서 바로 실행합니다.
+                          세트를 추가하고 값을 입력한 뒤 저장하세요. 같은
+                          세션에서는 직전 값이 자동으로 이어집니다.
                         </span>
                       </p>
                     </div>
@@ -593,7 +590,7 @@ export default function SessionDetailPage() {
                       variant="outline"
                       className="w-full justify-center sm:w-auto"
                     >
-                      <Link href={routineLinkHref}>루틴으로</Link>
+                      <Link href={routineLinkHref}>루틴 보기</Link>
                     </Button>
                   </div>
                 </CardContent>
@@ -614,7 +611,7 @@ export default function SessionDetailPage() {
               {safeSets.length === 0 ? (
                 <EmptyStatePanel
                   title="세트를 추가해 주세요."
-                  description="지금은 아무 세트도 없습니다. `세트 추가`를 눌러 첫 입력을 만든 뒤 저장하면, 이후 세트는 직전 값이 자동으로 이어집니다."
+                  description="아직 기록된 세트가 없습니다. `세트 추가`를 눌러 첫 세트를 만들고 저장해 보세요."
                   action={
                     <Button type="button" onClick={handleAddSet}>
                       첫 세트 만들기
@@ -656,15 +653,15 @@ export default function SessionDetailPage() {
                               </div>
                               <div className="space-y-2">
                                 <p className="brand-kicker !text-white/44">
-                                  Set Block
+                                  세트
                                 </p>
                                 <div className="space-y-1 sm:space-y-1.5">
                                   <p className="font-display text-2xl font-semibold tracking-[-0.05em] text-white sm:text-3xl">
                                     {isCompleted
-                                      ? "Completed"
+                                      ? "완료"
                                       : isActive
-                                        ? "Editing"
-                                        : "Ready"}
+                                        ? "입력 중"
+                                        : "대기 중"}
                                   </p>
                                   <p className="text-xs leading-5 text-white/44 sm:hidden">
                                     중량과 횟수를 입력한 뒤 완료 상태를 바꿀 수
@@ -687,7 +684,7 @@ export default function SessionDetailPage() {
                                     : "text-white/54",
                                 )}
                               >
-                                {isCompleted ? "Completed" : "In Progress"}
+                                {isCompleted ? "완료" : "진행 중"}
                               </span>
                               <Button
                                 type="button"
@@ -742,7 +739,7 @@ export default function SessionDetailPage() {
                                   }
                                 />
                                 <span className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-xs font-medium uppercase tracking-[0.22em] text-white/36">
-                                  KG
+                                  kg
                                 </span>
                               </div>
                             </label>
@@ -770,7 +767,7 @@ export default function SessionDetailPage() {
                                   }
                                 />
                                 <span className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-xs font-medium uppercase tracking-[0.22em] text-white/36">
-                                  REPS
+                                  회
                                 </span>
                               </div>
                             </label>
@@ -779,13 +776,11 @@ export default function SessionDetailPage() {
                           <div className="flex flex-col gap-3 border-t border-white/8 pt-4 sm:flex-row sm:items-center sm:justify-between">
                             <div className="flex flex-wrap gap-2">
                               <span className="hud-chip rounded-[0.9rem] px-3 py-2 text-[11px] font-medium uppercase tracking-[0.22em] text-white/52">
-                                {index === 0
-                                  ? "Empty Start"
-                                  : "Seed From Previous"}
+                                {index === 0 ? "첫 세트" : "이전 값 이어받기"}
                               </span>
                               {isActive ? (
                                 <span className="hud-chip rounded-[0.9rem] px-3 py-2 text-[11px] font-medium uppercase tracking-[0.22em] text-primary">
-                                  Active Input
+                                  입력 중
                                 </span>
                               ) : null}
                             </div>
@@ -807,9 +802,7 @@ export default function SessionDetailPage() {
               <Card className="bg-[linear-gradient(180deg,rgba(9,19,21,0.9),rgba(6,12,15,0.8))]">
                 <CardContent className="space-y-5 pt-6">
                   <div className="space-y-2">
-                    <p className="brand-kicker !text-primary/90">
-                      Session Pulse
-                    </p>
+                    <p className="brand-kicker !text-primary/90">세션 요약</p>
                     <p className="font-display text-2xl font-semibold tracking-[-0.05em] text-white">
                       현재 세션 상태
                     </p>
@@ -818,7 +811,7 @@ export default function SessionDetailPage() {
                   <div className="grid gap-3">
                     <div className="glass-field rounded-[1.15rem] px-4 py-4">
                       <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/42">
-                        Total sets
+                        전체 세트
                       </p>
                       <p className="mt-2 font-display text-3xl font-semibold tracking-[-0.05em] text-white">
                         {safeSets.length}
@@ -826,7 +819,7 @@ export default function SessionDetailPage() {
                     </div>
                     <div className="glass-field rounded-[1.15rem] px-4 py-4">
                       <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/42">
-                        Completion
+                        완료 수
                       </p>
                       <p className="mt-2 font-display text-3xl font-semibold tracking-[-0.05em] text-white">
                         {completedCount}/{safeSets.length}
@@ -837,11 +830,11 @@ export default function SessionDetailPage() {
                     </div>
                     <div className="glass-field rounded-[1.15rem] px-4 py-4">
                       <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/42">
-                        Save model
+                        저장 방식
                       </p>
                       <p className="mt-2 text-sm leading-6 text-white/54">
-                        입력은 draft로 유지하고, 저장 시점에만 Zod 검증 후
-                        확정합니다.
+                        입력 중인 값은 자유롭게 바꾸고, 저장하면 기록에
+                        반영됩니다.
                       </p>
                     </div>
                   </div>
@@ -850,7 +843,7 @@ export default function SessionDetailPage() {
 
               <Card className="bg-[linear-gradient(180deg,rgba(9,16,18,0.84),rgba(6,12,15,0.72))]">
                 <CardContent className="space-y-4 pt-6">
-                  <p className="brand-kicker !text-white/50">Input Rules</p>
+                  <p className="brand-kicker !text-white/50">입력 안내</p>
                   <div className="grid gap-3">
                     {SESSION_RULES.map((rule) => (
                       <div

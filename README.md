@@ -1,83 +1,117 @@
 # Workout PWA
 
-로컬 저장을 기본으로 삼은 운동 기록 PWA입니다.  
-핵심 목표는 네트워크가 불안정해도 기록 흐름이 끊기지 않는 것, 그리고 포트폴리오에서 제품 완성도가 바로 보이도록 만드는 것입니다.
+운동 기록을 빠르게 시작하고, 저장된 기록을 네트워크 상태와 무관하게 다시 이어서 볼 수 있도록 만든 local-first 운동 기록 PWA입니다.
 
-현재 버전은 기능 중심 MVP에서 한 단계 더 나아가, `빠른 진입`, `최근 세션 재개`, `루틴 기반 시작`, `chart-based training insights`, `전술 HUD 톤의 세션 에디터`까지 제품 경험 전체를 다시 정리했습니다.
+현재 제품은 다음 흐름을 중심으로 구성되어 있습니다.
 
-## Latest UI (2026-03-16)
+- 홈에서 `세션 시작`, `최근 세션 이어가기`, `루틴 보기`를 바로 선택
+- 루틴 목록과 상세에서 세션을 다시 시작하거나 기록 이력을 확인
+- 세션 화면에서 세트를 입력하고 저장 시점에만 검증
+- 홈 대시보드에서 이번 주 활동, 연속 기록, 루틴별 사용 비중 확인
+- 서비스 워커와 로컬 저장을 바탕으로 새로고침/재진입/오프라인 친화 동작 유지
 
-![Home Dashboard](./docs/evidence/2026-03-16/01-home-dashboard.png)
+## 현재 화면
 
-![Routine Library](./docs/evidence/2026-03-16/02-routines-direct-start.png)
+### 홈 대시보드
 
-![Session Editor](./docs/evidence/2026-03-16/04-session-editor-filled.png)
+![Home Dashboard](./docs/evidence/2026-03-19/01-home-dashboard.png)
 
-추가 캡쳐:
+홈은 첫 진입 화면이자 복귀 화면입니다. 빠른 시작, 최근 세션 재개, 최근 루틴, 활동 요약을 한 화면에 모아 기록 흐름을 짧게 유지합니다.
 
-- [Routine Detail Edit](./docs/evidence/2026-03-16/03-routine-detail-edit.png)
-- [Routine Builder](./docs/evidence/2026-03-16/05-routine-builder.png)
-- [Validation Error](./docs/evidence/2026-03-16/06-validation-error.png)
-- [Home Dashboard Mobile](./docs/evidence/2026-03-16/07-home-dashboard-mobile.png)
+### 루틴 라이브러리
 
-## Product Highlights
+![Routine Library](./docs/evidence/2026-03-19/02-routine-library.png)
 
-- 홈에서 `세션 시작`, `최근 세션 이어가기`, `루틴 보기`를 한 화면에 배치해 첫 진입 흐름을 짧게 만들었습니다.
-- 루틴 목록에서 상세를 거치지 않고 바로 세션을 시작할 수 있습니다.
-- 홈 `Training Snapshot`에서 최근 7일 활동, streak, 루틴별 사용 비중을 실제 차트로 읽을 수 있습니다.
-- 세션 화면은 단순 폼이 아니라, 상태 요약과 입력 규칙을 함께 보여주는 `session console` 형태로 재구성했습니다.
-- 전체 UI는 어두운 유리 패널과 네온 포인트를 사용하는 `tactical glass` 무드로 정리했습니다.
+루틴은 이름과 설명만 저장하지 않습니다. 운동 블록, 목표 세트 수, 메모를 함께 보관하는 템플릿으로 관리되며, 목록 카드에서 바로 세션을 시작할 수 있습니다.
 
-## Core Design Decisions
+### 세션 에디터
 
-### 1. Draft와 Saved State 분리
+![Session Editor](./docs/evidence/2026-03-19/03-session-editor-filled.png)
 
-- 입력 중 상태는 `draftBySetId`로 관리합니다.
-- 저장 시점에만 Zod 검증 후 Zustand store와 IndexedDB에 반영합니다.
-- 덕분에 입력 UX와 저장 데이터 무결성을 분리해서 다룰 수 있습니다.
+세션 화면은 단순 입력 폼이 아니라, 상태 요약과 입력 규칙을 함께 보여주는 기록 콘솔에 가깝게 설계되어 있습니다. 입력 중 draft와 저장된 상태를 분리해 저장 타이밍을 제어합니다.
 
-### 2. Runtime Validation
+## 지금 이 앱이 하는 일
 
-- TypeScript는 컴파일 시점 안전성만 보장합니다.
-- 실제 사용자 입력은 런타임 데이터이므로 Zod로 최종 검증합니다.
-- `z.coerce.number()`를 사용해 숫자 입력을 안전하게 변환한 뒤 추가 조건을 적용합니다.
+### 1. 빠른 시작과 재개
 
-### 3. Local-first Persistence
+- 홈에서 루틴 없이 바로 세션을 시작할 수 있습니다.
+- 최근 세션이 있으면 같은 화면에서 바로 다시 열 수 있습니다.
+- 루틴 화면에서는 상세를 거치지 않고 바로 세션으로 들어가는 경로를 제공합니다.
 
-- 세션과 루틴은 IndexedDB(Dexie)에 저장합니다.
-- 네트워크와 무관하게 기록, 새로고침 복구, 재진입 복구가 가능합니다.
-- 선택적으로 outbox sync를 활성화해 서버 백업 계층을 붙일 수 있습니다.
+### 2. 루틴 기반 기록
 
-### 4. Repeated Input Reduction
+- 루틴은 `name + description` 수준이 아니라 운동 템플릿입니다.
+- 각 루틴은 운동 이름, 정렬 순서, 목표 세트 수, 선택 메모를 가집니다.
+- 루틴 상세에서는 템플릿 구조와 저장된 세션을 함께 확인할 수 있습니다.
 
-- 새 세트는 직전 세트 값을 기본값으로 이어받습니다.
-- 반복 입력량을 줄여 실제 운동 상황에 맞는 기록 흐름을 만들었습니다.
+### 3. 세션 저장과 복구
 
-### 5. Chart-based Insights
+- 입력 중 상태는 임시 draft로 유지하고, 저장 시점에만 Zod 검증 후 확정합니다.
+- 세션과 루틴 데이터는 IndexedDB(Dexie)에 저장됩니다.
+- 새로고침 후에도 저장된 세션을 다시 열어 같은 내용을 이어서 볼 수 있습니다.
 
-- `recharts`를 사용해 최근 7일 활동과 루틴별 사용 비중을 홈에서 바로 시각화합니다.
-- 별도 API 없이 로컬에 저장된 세션/루틴 데이터만 집계해 제품 깊이를 보여줍니다.
+### 4. 대시보드 인사이트
 
-## Demo Scenario
+- 총 세션 수, 등록 루틴 수, 저장된 세트 수, 누적 볼륨을 집계합니다.
+- 이번 주 세션 수와 볼륨을 주간 차트로 보여줍니다.
+- 루틴별 사용 비중을 시각화해 최근 운동 패턴을 한눈에 확인할 수 있습니다.
 
-1. 홈에서 `세션 시작` 또는 `최근 세션 이어가기`를 선택합니다.
-2. 루틴이 있다면 `/routines`에서 원하는 루틴 카드의 `이 루틴으로 시작`을 누릅니다.
-3. `/session/[id]`에서 세트를 추가하고, 중량/횟수를 입력한 뒤 저장합니다.
-4. 저장 후 새로고침하거나 다시 진입해도 동일 데이터가 유지됩니다.
-5. 빈 입력 상태에서 저장하면 검증 에러가 노출됩니다.
+### 5. 오프라인 친화 동작
 
-## Verification
+- 기록 자체는 로컬 저장을 기본으로 하기 때문에 네트워크와 분리되어 유지됩니다.
+- 서비스 워커가 설치된 뒤에는 홈과 루틴 등 핵심 화면 app shell을 다시 열 수 있습니다.
+- 문서 요청 실패 시 `offline.html` 안내 화면으로 fallback 됩니다.
 
-2026년 3월 16일 기준 로컬 재검증:
+## 핵심 설계 결정
+
+### Draft와 Saved State 분리
+
+- 세션 입력은 `draftBySetId`로 관리합니다.
+- 저장 버튼을 누를 때만 Zod 검증 후 Zustand store와 IndexedDB에 반영합니다.
+- 입력 UX와 저장 데이터 무결성을 분리해 다룰 수 있습니다.
+
+### Local-first Persistence
+
+- 세션과 루틴은 Dexie를 통해 IndexedDB에 저장합니다.
+- 라우트 재진입이나 새로고침 이후에도 저장된 데이터를 다시 불러올 수 있습니다.
+- 선택적으로 outbox sync를 붙일 수 있도록 저장소 구조를 분리해 두었습니다.
+
+### Runtime Validation
+
+- TypeScript만으로는 사용자 입력의 런타임 품질을 보장할 수 없습니다.
+- 세션 세트와 루틴 템플릿은 Zod로 최종 검증합니다.
+- 숫자 입력은 coercion 후 범위 제한을 적용해 저장 시점에 확정합니다.
+
+## 주요 사용자 흐름
+
+1. 홈에서 `세션 시작`, `최근 세션 이어가기`, `루틴 보기` 중 하나를 선택합니다.
+2. 루틴을 새로 만들 경우 운동 블록과 목표 세트 수를 포함한 템플릿을 저장합니다.
+3. 루틴 목록 또는 루틴 상세에서 `이 루틴으로 시작`으로 세션을 엽니다.
+4. 세션 화면에서 세트를 입력하고 저장합니다.
+5. 홈으로 돌아오면 최근 세션과 대시보드 집계가 즉시 반영됩니다.
+
+## 검증
+
+문서 갱신 시점 로컬 재검증:
 
 - `npm run lint`
 - `npm run typecheck`
 - `npm run build`
-- `$env:CI='1'; $env:PLAYWRIGHT_PORT='3100'; npm run test:e2e`
+- `PLAYWRIGHT_BASE_URL=http://127.0.0.1:3210 PLAYWRIGHT_PORT=3210 npx playwright test tests/session-persistence.spec.ts -g "routine template|starts a session directly from routine detail"`
 
-결과:
+## 짧은 트러블슈팅 메모
 
-- `11 passed`
+### Zustand selector 참조 안정성
+
+`state.sessions[sessionId] ?? []` 같은 fallback 배열을 selector 내부에서 만들면 렌더마다 새 참조가 생겨 `getSnapshot` 경고가 날 수 있습니다. 이 저장소에서는 selector는 원본 값만 읽고, 기본값은 컴포넌트 레벨에서 처리합니다.
+
+### 오프라인 fallback 범위
+
+서비스 워커 fallback은 “앱이 처음부터 완전 오프라인”을 보장하는 장치가 아닙니다. 온라인 상태에서 한 번 방문해 SW가 설치된 뒤, 문서 요청(`navigate`) 실패 시 핵심 화면 셸과 `offline.html` 안내를 제공하는 범위로 설계했습니다.
+
+### 새 세션 bootstrap 경로
+
+빠른 시작과 오프라인 시작 경로는 고정 세션 id를 재사용하면 충돌하기 쉽습니다. 이 저장소는 pending session id와 bootstrap 처리를 분리해, 새 세션 진입 경로가 저장 흐름과 충돌하지 않도록 정리했습니다.
 
 ## Tech Stack
 
@@ -86,48 +120,26 @@
 - Zustand
 - Dexie / IndexedDB
 - Zod
-- shadcn/ui
 - Tailwind CSS 4
+- shadcn/ui
 - Playwright
 
 ## Production URL
 
 - [workout-pwa-jongha.vercel.app](https://workout-pwa-jongha.vercel.app/)
 
-## Outbox Sync (Optional)
+## Optional Sync
 
 - 기본값: `NEXT_PUBLIC_SYNC_TRANSPORT=noop`
 - 실연동: `NEXT_PUBLIC_SYNC_TRANSPORT=api`
 - Route 활성화: `SYNC_ROUTE_ENABLED=true`
 
-필수 ENV:
+필수 환경변수:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
-- `SUPABASE_SYNC_TABLE`  
-  기본값은 `sync_events` 입니다.
-
-Route handler가 전송하는 필드는 아래와 같습니다.
-
-```sql
-create table sync_events (
-  id uuid primary key,
-  entity_type text not null,
-  entity_id text not null,
-  op text not null,
-  payload jsonb not null,
-  client_created_at bigint not null,
-  client_updated_at bigint not null,
-  client_attempt_count integer not null,
-  created_at timestamptz default now()
-);
-```
-
-보안 기본값:
-
-- `SYNC_ROUTE_ENABLED=false`
-- service role key 누출 시 즉시 rotate 필요
+- `SUPABASE_SYNC_TABLE`
 
 ## Docs
 

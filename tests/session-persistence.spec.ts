@@ -3,7 +3,10 @@ import { expect, test } from "@playwright/test";
 const startSession = async (page: import("@playwright/test").Page) => {
   await page.goto("/");
   await page.getByRole("button", { name: "세션 시작" }).click();
-  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/, {
+    timeout: 20_000,
+  });
+  await waitForDevCompileToSettle(page);
 
   const match = page.url().match(/\/session\/([^/?#]+)/);
   if (!match) {
@@ -11,6 +14,14 @@ const startSession = async (page: import("@playwright/test").Page) => {
   }
 
   return match[1];
+};
+
+const waitForDevCompileToSettle = async (
+  page: import("@playwright/test").Page,
+) => {
+  await expect(page.getByText("Compiling")).toHaveCount(0, {
+    timeout: 30_000,
+  });
 };
 
 const createRoutineAndOpenDetail = async (
@@ -87,8 +98,12 @@ const createRoutineTemplate = async (
 
   await page.getByRole("button", { name: "생성" }).click();
   await expect(page).toHaveURL(/\/routines\/[0-9a-f-]{36}$/, {
-    timeout: 10_000,
+    timeout: 20_000,
   });
+  await waitForDevCompileToSettle(page);
+  await expect(
+    page.getByRole("button", { name: "이 루틴으로 시작" }),
+  ).toBeVisible();
 };
 
 const readOutboxStatusCounts = async (
@@ -202,7 +217,26 @@ test("starts a session directly from routine detail", async ({ page }) => {
   const routine = await createRoutineAndOpenDetail(page);
 
   await page.getByRole("button", { name: "이 루틴으로 시작" }).click();
-  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/, {
+    timeout: 20_000,
+  });
+  await waitForDevCompileToSettle(page);
+  await expect(page.getByRole("link", { name: "루틴 보기" })).toHaveAttribute(
+    "href",
+    `/routines/${routine.id}`,
+  );
+});
+
+test("starts a session directly from routines list", async ({ page }) => {
+  const routine = await createRoutineAndOpenDetail(page);
+
+  await page.goto("/routines");
+  await waitForDevCompileToSettle(page);
+  await page.getByRole("button", { name: "이 루틴으로 시작" }).click();
+  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/, {
+    timeout: 20_000,
+  });
+  await waitForDevCompileToSettle(page);
   await expect(page.getByRole("link", { name: "루틴 보기" })).toHaveAttribute(
     "href",
     `/routines/${routine.id}`,
@@ -215,7 +249,10 @@ test("home shows recent session, featured routine, and training snapshot", async
   const routine = await createRoutineAndOpenDetail(page);
 
   await page.getByRole("button", { name: "이 루틴으로 시작" }).click();
-  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/, {
+    timeout: 20_000,
+  });
+  await waitForDevCompileToSettle(page);
 
   await page.getByRole("button", { name: "세트 추가" }).click();
   await page.getByPlaceholder("중량 (예: 60)").first().fill("80");
@@ -258,7 +295,8 @@ test("routine template persists after create and reload", async ({ page }) => {
   await expect(page.getByText("목표 세트 4개")).toBeVisible();
   await expect(page.getByText("메인 리프트")).toBeVisible();
 
-  await page.reload();
+  await page.reload({ waitUntil: "domcontentloaded", timeout: 60_000 });
+  await waitForDevCompileToSettle(page);
 
   await expect(page.getByText("Barbell Bench Press")).toBeVisible();
   await expect(page.getByText("Incline Dumbbell Press")).toBeVisible();
@@ -311,9 +349,35 @@ test("new session route remains available as fallback entry", async ({
 }) => {
   await page.goto("/session/new");
   await expect(page).toHaveURL(/\/session\/new$/);
+  await waitForDevCompileToSettle(page);
 
   await page.locator("button").first().click();
-  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/, {
+    timeout: 20_000,
+  });
+  await waitForDevCompileToSettle(page);
+});
+
+test("new session route can start a selected routine session", async ({
+  page,
+}) => {
+  const routine = await createRoutineAndOpenDetail(page);
+
+  await page.goto(`/session/new?routineId=${routine.id}`);
+  await waitForDevCompileToSettle(page);
+  await expect(
+    page.getByText(`${routine.name} 루틴으로 새 세션을 시작합니다.`),
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "세션 시작" }).click();
+  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/, {
+    timeout: 20_000,
+  });
+  await waitForDevCompileToSettle(page);
+  await expect(page.getByRole("link", { name: "루틴 보기" })).toHaveAttribute(
+    "href",
+    `/routines/${routine.id}`,
+  );
 });
 
 test("invalid session id shows guidance instead of editable form", async ({

@@ -13,21 +13,10 @@ import {
   YAxis,
 } from "recharts";
 
-type RecentActivityPoint = {
-  key: string;
-  label: string;
-  sessionCount: number;
-  volume: number;
-};
-
-type RoutineInsight = {
-  id: string;
-  label: string;
-  sessionCount: number;
-  totalSets: number;
-  totalVolume: number;
-  share: number;
-};
+import type {
+  RecentActivityPoint,
+  RoutineInsight,
+} from "@/components/home/home.types";
 
 type TrainingActivityChartProps = {
   data: RecentActivityPoint[];

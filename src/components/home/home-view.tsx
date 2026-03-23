@@ -384,13 +384,13 @@ function TrainingSnapshotSection({
                 ))}
               </div>
 
-                <div className="surface-soft flex items-start gap-3 rounded-[1.2rem] px-4 py-4 text-sm text-white/60 xl:col-span-2">
-                  <Activity className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                  <p className="leading-6">
-                    자주 사용하는 루틴과 누적 볼륨을 함께 보여줘 최근 운동
-                    패턴을 빠르게 파악할 수 있습니다.
-                  </p>
-                </div>
+              <div className="surface-soft flex items-start gap-3 rounded-[1.2rem] px-4 py-4 text-sm text-white/60 xl:col-span-2">
+                <Activity className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <p className="leading-6">
+                  자주 사용하는 루틴과 누적 볼륨을 함께 보여줘 최근 운동 패턴을
+                  빠르게 파악할 수 있습니다.
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>

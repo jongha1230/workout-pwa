@@ -49,7 +49,8 @@ export function useHomeOverview(): HomeOverviewData {
   }, []);
 
   const routineNameById = useMemo(
-    () => Object.fromEntries(routines.map((routine) => [routine.id, routine.name])),
+    () =>
+      Object.fromEntries(routines.map((routine) => [routine.id, routine.name])),
     [routines],
   );
 

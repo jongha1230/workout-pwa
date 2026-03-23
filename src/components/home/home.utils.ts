@@ -1,6 +1,9 @@
 import type { SessionRecord } from "@/lib/db";
 
-import type { RoutineInsight, TrainingSnapshot } from "@/components/home/home.types";
+import type {
+  RoutineInsight,
+  TrainingSnapshot,
+} from "@/components/home/home.types";
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 const QUICK_SESSION_ID = "__quick_session__";

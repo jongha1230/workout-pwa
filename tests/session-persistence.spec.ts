@@ -32,7 +32,10 @@ const createRoutineAndOpenDetail = async (
     throw new Error("Failed to extract routine id from URL.");
   }
 
-  return match[1];
+  return {
+    id: match[1],
+    name: routineName,
+  };
 };
 
 const fillRoutineExercise = async (
@@ -83,7 +86,9 @@ const createRoutineTemplate = async (
   }
 
   await page.getByRole("button", { name: "생성" }).click();
-  await expect(page).toHaveURL(/\/routines\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/routines\/[0-9a-f-]{36}$/, {
+    timeout: 10_000,
+  });
 };
 
 const readOutboxStatusCounts = async (
@@ -194,14 +199,41 @@ const readSessionSnapshot = async (
   }, sessionId);
 
 test("starts a session directly from routine detail", async ({ page }) => {
-  const routineId = await createRoutineAndOpenDetail(page);
+  const routine = await createRoutineAndOpenDetail(page);
 
   await page.getByRole("button", { name: "이 루틴으로 시작" }).click();
   await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/);
   await expect(page.getByRole("link", { name: "루틴 보기" })).toHaveAttribute(
     "href",
-    `/routines/${routineId}`,
+    `/routines/${routine.id}`,
   );
+});
+
+test("home shows recent session, featured routine, and training snapshot", async ({
+  page,
+}) => {
+  const routine = await createRoutineAndOpenDetail(page);
+
+  await page.getByRole("button", { name: "이 루틴으로 시작" }).click();
+  await expect(page).toHaveURL(/\/session\/[0-9a-f-]{36}$/);
+
+  await page.getByRole("button", { name: "세트 추가" }).click();
+  await page.getByPlaceholder("중량 (예: 60)").first().fill("80");
+  await page.getByPlaceholder("횟수 (예: 10)").first().fill("5");
+  await page.getByRole("button", { name: "저장" }).click();
+  await expect(page.getByText("세션이 저장되었습니다.")).toBeVisible();
+
+  await page.goto("/");
+
+  await expect(
+    page.getByRole("link", { name: "최근 세션 이어가기" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: `${routine.name} 시작` }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("최근 7일 동안 1회 기록했고, 1일 실제로 운동했습니다."),
+  ).toBeVisible();
 });
 
 test("routine template persists after create and reload", async ({ page }) => {

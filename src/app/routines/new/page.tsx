@@ -2,17 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { ArrowLeft, Plus, Sparkles, Target } from "lucide-react";
 
 import { PageShell, StatPill } from "@/components/brand/page-shell";
+import { RoutineTemplateForm } from "@/components/routine/routine-template-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { createRoutine } from "@/entities/routine/repo/routine.repo";
-
-const textareaClassName =
-  "glass-field min-h-36 w-full rounded-[1.15rem] px-4 py-3 text-sm leading-7 text-white outline-none transition-[box-shadow,border-color] placeholder:text-white/34 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 const namingPrompts = [
   "루틴 이름은 부위 + 목적이 한 번에 보이게 적기",
@@ -22,35 +18,6 @@ const namingPrompts = [
 
 export default function NewRoutinePage() {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (isSubmitting) return;
-
-    const trimmedName = name.trim();
-    if (trimmedName.length === 0) {
-      setErrorMessage("루틴 이름을 입력해 주세요.");
-      return;
-    }
-
-    setIsSubmitting(true);
-    setErrorMessage(null);
-
-    try {
-      const routine = await createRoutine({
-        name: trimmedName,
-        description,
-      });
-      router.push(`/routines/${routine.id}`);
-    } catch {
-      setErrorMessage("루틴 생성에 실패했습니다. 다시 시도해 주세요.");
-      setIsSubmitting(false);
-    }
-  };
 
   return (
     <PageShell
@@ -83,43 +50,16 @@ export default function NewRoutinePage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-              <label className="space-y-2">
-                <span className="text-sm font-medium text-white/74">
-                  루틴 이름
-                </span>
-                <Input
-                  placeholder="루틴 이름 (예: Upper Body)"
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                />
-              </label>
-
-              <label className="space-y-2">
-                <span className="text-sm font-medium text-white/74">설명</span>
-                <textarea
-                  className={textareaClassName}
-                  placeholder="설명 (선택)"
-                  value={description}
-                  onChange={(event) => setDescription(event.target.value)}
-                />
-              </label>
-
-              {errorMessage ? (
-                <p className="rounded-[1.1rem] border border-destructive/20 bg-destructive/12 px-4 py-3 text-sm font-medium text-destructive">
-                  {errorMessage}
-                </p>
-              ) : null}
-
-              <div className="flex flex-wrap gap-3 pt-2">
-                <Button type="submit" size="lg" disabled={isSubmitting}>
-                  {isSubmitting ? "생성 중..." : "생성"}
-                </Button>
-                <Button asChild type="button" size="lg" variant="outline">
-                  <Link href="/routines">취소</Link>
-                </Button>
-              </div>
-            </form>
+            <RoutineTemplateForm
+              seedExerciseOnEmpty
+              submitLabel="생성"
+              submittingLabel="생성 중..."
+              cancelHref="/routines"
+              onSubmit={async (input) => {
+                const routine = await createRoutine(input);
+                router.push(`/routines/${routine.id}`);
+              }}
+            />
           </CardContent>
         </Card>
 

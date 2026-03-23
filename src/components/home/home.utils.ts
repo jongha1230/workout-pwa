@@ -4,9 +4,7 @@ import type { RoutineInsight, TrainingSnapshot } from "@/components/home/home.ty
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 const QUICK_SESSION_ID = "__quick_session__";
-const weekdayFormatter = new Intl.DateTimeFormat("ko-KR", {
-  weekday: "short",
-});
+const WEEKDAY_LABELS = ["월", "화", "수", "목", "금", "토", "일"];
 
 export const EMPTY_TRAINING_SNAPSHOT: TrainingSnapshot = {
   totalSessions: 0,
@@ -17,7 +15,7 @@ export const EMPTY_TRAINING_SNAPSHOT: TrainingSnapshot = {
   activeDaysLast7: 0,
   currentStreak: 0,
   bestStreak: 0,
-  recentActivity: [],
+  weeklyActivity: [],
   routineInsights: [],
 };
 
@@ -33,6 +31,13 @@ const getStartOfDayTimestamp = (timestamp: number) => {
   const date = new Date(timestamp);
   date.setHours(0, 0, 0, 0);
   return date.getTime();
+};
+
+const getWeekStartTimestamp = (timestamp: number) => {
+  const dayStart = getStartOfDayTimestamp(timestamp);
+  const dayOfWeek = new Date(dayStart).getDay();
+  const offsetFromMonday = (dayOfWeek + 6) % 7;
+  return dayStart - offsetFromMonday * DAY_IN_MS;
 };
 
 const getSessionVolume = (session: SessionRecord) =>
@@ -99,20 +104,24 @@ export const buildTrainingSnapshot = (
 
   const todayStart = getStartOfDayTimestamp(Date.now());
   const recentWindowStart = todayStart - 6 * DAY_IN_MS;
+  const currentWeekStart = getWeekStartTimestamp(todayStart);
+  const currentWeekEnd = currentWeekStart + 6 * DAY_IN_MS;
 
-  const recentActivity = Array.from({ length: 7 }, (_, index) => {
-    const dayStart = todayStart - (6 - index) * DAY_IN_MS;
+  const weeklyActivity = WEEKDAY_LABELS.map((label, index) => {
+    const dayStart = currentWeekStart + index * DAY_IN_MS;
     return {
       key: getDateKey(dayStart),
-      label: weekdayFormatter.format(new Date(dayStart)),
+      label,
       sessionCount: 0,
       volume: 0,
     };
   });
-  const recentActivityByKey = new Map(
-    recentActivity.map((point) => [point.key, point]),
+  const weeklyActivityByKey = new Map(
+    weeklyActivity.map((point) => [point.key, point]),
   );
   const activeDaySet = new Set<number>();
+  const activeDaysLast7Set = new Set<number>();
+  let sessionsLast7Days = 0;
 
   const routineInsightMap = sessions.reduce<Record<string, RoutineInsight>>(
     (acc, session) => {
@@ -123,10 +132,15 @@ export const buildTrainingSnapshot = (
       activeDaySet.add(dayStart);
 
       if (dayStart >= recentWindowStart) {
-        const recentPoint = recentActivityByKey.get(getDateKey(dayStart));
-        if (recentPoint) {
-          recentPoint.sessionCount += 1;
-          recentPoint.volume += volume;
+        sessionsLast7Days += 1;
+        activeDaysLast7Set.add(dayStart);
+      }
+
+      if (dayStart >= currentWeekStart && dayStart <= currentWeekEnd) {
+        const weeklyPoint = weeklyActivityByKey.get(getDateKey(dayStart));
+        if (weeklyPoint) {
+          weeklyPoint.sessionCount += 1;
+          weeklyPoint.volume += volume;
         }
       }
 
@@ -175,14 +189,8 @@ export const buildTrainingSnapshot = (
     (sum, session) => sum + getSessionVolume(session),
     0,
   );
-  const sessionsLast7Days = recentActivity.reduce(
-    (sum, point) => sum + point.sessionCount,
-    0,
-  );
   const activeDayTimestamps = [...activeDaySet];
-  const activeDaysLast7 = recentActivity.filter(
-    (point) => point.sessionCount > 0,
-  ).length;
+  const activeDaysLast7 = activeDaysLast7Set.size;
 
   return {
     totalSessions: sessions.length,
@@ -193,7 +201,7 @@ export const buildTrainingSnapshot = (
     activeDaysLast7,
     currentStreak: computeCurrentStreak(activeDayTimestamps, todayStart),
     bestStreak: computeBestStreak(activeDayTimestamps),
-    recentActivity,
+    weeklyActivity,
     routineInsights,
   };
 };

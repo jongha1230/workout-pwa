@@ -4,7 +4,7 @@ export type HomeRoutineSummary = RoutineRecord & {
   sessionCount: number;
 };
 
-export type RecentActivityPoint = {
+export type WeeklyActivityPoint = {
   key: string;
   label: string;
   sessionCount: number;
@@ -30,7 +30,7 @@ export type TrainingSnapshot = {
   activeDaysLast7: number;
   currentStreak: number;
   bestStreak: number;
-  recentActivity: RecentActivityPoint[];
+  weeklyActivity: WeeklyActivityPoint[];
   routineInsights: RoutineInsight[];
 };
 

@@ -14,12 +14,12 @@ import {
 } from "recharts";
 
 import type {
-  RecentActivityPoint,
   RoutineInsight,
+  WeeklyActivityPoint,
 } from "@/components/home/home.types";
 
 type TrainingActivityChartProps = {
-  data: RecentActivityPoint[];
+  data: WeeklyActivityPoint[];
 };
 
 type RoutineShareChartProps = {
@@ -45,15 +45,15 @@ const getBarColor = (index: number) => {
 
 export function TrainingActivityChart({ data }: TrainingActivityChartProps) {
   return (
-    <div className="rounded-[1.35rem] border border-white/8 bg-white/[0.03] px-3 py-4 sm:px-4">
+    <div className="rounded-[1.35rem] border border-white/8 bg-white/[0.03] px-2.5 py-4 sm:px-4">
       <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-white/52">
         <span className="inline-flex items-center gap-2">
           <span className="h-2.5 w-2.5 rounded-full bg-primary" />
-          최근 7일 세션 수
+          이번 주 세션 수
         </span>
         <span className="inline-flex items-center gap-2">
           <span className="h-2.5 w-2.5 rounded-full bg-[rgba(255,196,86,0.88)]" />
-          최근 7일 볼륨
+          이번 주 볼륨
         </span>
       </div>
 
@@ -61,19 +61,24 @@ export function TrainingActivityChart({ data }: TrainingActivityChartProps) {
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart
             data={data}
-            margin={{ top: 8, right: 8, left: -18, bottom: 0 }}
+            margin={{ top: 8, right: 12, left: 10, bottom: 4 }}
           >
             <defs>
-              <linearGradient
-                id="activity-volume-line"
-                x1="0"
-                x2="0"
-                y1="0"
-                y2="1"
+              <filter
+                id="activity-volume-shadow"
+                x="-20%"
+                y="-20%"
+                width="140%"
+                height="140%"
               >
-                <stop offset="0%" stopColor="rgba(255,196,86,0.92)" />
-                <stop offset="100%" stopColor="rgba(255,196,86,0.18)" />
-              </linearGradient>
+                <feDropShadow
+                  dx="0"
+                  dy="0"
+                  floodColor="rgba(4,10,12,0.92)"
+                  floodOpacity="0.88"
+                  stdDeviation="1.2"
+                />
+              </filter>
             </defs>
             <CartesianGrid
               stroke="rgba(255,255,255,0.08)"
@@ -83,7 +88,11 @@ export function TrainingActivityChart({ data }: TrainingActivityChartProps) {
             <XAxis
               axisLine={false}
               dataKey="label"
-              tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 12 }}
+              interval={0}
+              minTickGap={0}
+              padding={{ left: 8, right: 12 }}
+              tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 11 }}
+              tickMargin={10}
               tickLine={false}
             />
             <YAxis
@@ -121,7 +130,7 @@ export function TrainingActivityChart({ data }: TrainingActivityChartProps) {
               separator=" "
             />
             <Bar
-              barSize={22}
+              barSize={18}
               dataKey="sessionCount"
               fill="rgba(111,255,220,0.88)"
               name="sessionCount"
@@ -130,17 +139,25 @@ export function TrainingActivityChart({ data }: TrainingActivityChartProps) {
             />
             <Line
               dataKey="volume"
-              dot={{
-                fill: "rgba(255,196,86,0.95)",
+              activeDot={{
+                fill: "rgba(6,16,20,0.98)",
                 r: 4,
-                stroke: "rgba(4,10,12,1)",
+                stroke: "rgba(255,208,120,1)",
                 strokeWidth: 2,
               }}
+              dot={{
+                fill: "rgba(255,208,120,0)",
+                r: 3.25,
+                stroke: "rgba(255,208,120,0.98)",
+                strokeWidth: 1.75,
+              }}
+              filter="url(#activity-volume-shadow)"
               name="volume"
-              stroke="url(#activity-volume-line)"
+              stroke="rgba(255,208,120,1)"
               strokeLinecap="round"
-              strokeWidth={3}
-              type="monotone"
+              strokeLinejoin="round"
+              strokeWidth={4.5}
+              type="linear"
               yAxisId="volume"
             />
           </ComposedChart>
@@ -158,7 +175,7 @@ export function RoutineShareChart({ data }: RoutineShareChartProps) {
       <div className="mb-4 flex items-center justify-between gap-3">
         <p className="text-sm text-white/58">세션 비중 기준 상위 루틴</p>
         <p className="text-xs uppercase tracking-[0.18em] text-white/34">
-          Top {data.length}
+          상위 {data.length}
         </p>
       </div>
 

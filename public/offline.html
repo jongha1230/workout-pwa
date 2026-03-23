@@ -14,7 +14,11 @@
         --text: #f3f7f6;
         --muted: rgba(243, 247, 246, 0.58);
         --border: rgba(255, 255, 255, 0.12);
-        --button: linear-gradient(180deg, rgba(111, 255, 220, 0.28), rgba(18, 91, 76, 0.72));
+        --button: linear-gradient(
+          180deg,
+          rgba(111, 255, 220, 0.28),
+          rgba(18, 91, 76, 0.72)
+        );
         --button-text: #f7fffc;
       }
 
@@ -29,8 +33,16 @@
         place-items: center;
         padding: 16px;
         background:
-          radial-gradient(circle at top left, var(--bg-accent) 0, transparent 32%),
-          radial-gradient(circle at top right, var(--bg-accent-2) 0, transparent 26%),
+          radial-gradient(
+            circle at top left,
+            var(--bg-accent) 0,
+            transparent 32%
+          ),
+          radial-gradient(
+            circle at top right,
+            var(--bg-accent-2) 0,
+            transparent 26%
+          ),
           linear-gradient(180deg, #030709 0%, var(--bg) 100%);
         font-family:
           "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
@@ -99,11 +111,11 @@
   </head>
   <body>
     <main class="card">
-      <p class="eyebrow">Offline fallback</p>
+      <p class="eyebrow">오프라인 안내</p>
       <h1>오프라인입니다</h1>
       <p>
-        기록은 로컬에 저장됩니다. 온라인 연결 시 동기화(옵션)를 진행할 수
-        있습니다.
+        인터넷 연결이 없어도 저장된 기록은 그대로 유지됩니다. 연결이 다시 되면
+        동기화를 이어서 진행할 수 있습니다.
       </p>
       <div class="actions">
         <a class="btn primary" href="/">홈으로 돌아가기</a>

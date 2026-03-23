@@ -93,7 +93,7 @@ function RecentSessionSection({
         <CardHeader>
           <p className="brand-kicker !text-primary/90">최근 이어가기</p>
           <CardTitle className="text-3xl text-white">
-            최근 기록을 바로 이어갈 수 있어야 제품처럼 보입니다.
+            최근 기록을 바로 이어서 확인하세요.
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-5 text-sm leading-7 text-white/76 sm:text-base">
@@ -126,8 +126,8 @@ function RecentSessionSection({
             </div>
           ) : (
             <div className="glass-field rounded-[1.4rem] px-5 py-5">
-              아직 저장된 세션이 없습니다. 첫 세션을 만들고 나면 이 영역이 최근
-              기록 대시보드로 바뀝니다.
+              아직 저장된 세션이 없습니다. 첫 기록을 저장하면 최근 세션을
+              여기에서 바로 다시 열 수 있습니다.
             </div>
           )}
 
@@ -135,19 +135,19 @@ function RecentSessionSection({
             <div className="hud-chip rounded-[1.2rem] px-4 py-4">
               <Clock3 className="mb-4 h-5 w-5 text-primary" />
               <p className="font-display text-lg tracking-[-0.04em] text-white">
-                최근 복귀
+                최근 기록
               </p>
             </div>
             <div className="hud-chip rounded-[1.2rem] px-4 py-4">
               <FolderKanban className="mb-4 h-5 w-5 text-primary" />
               <p className="font-display text-lg tracking-[-0.04em] text-white">
-                루틴 진입
+                루틴 시작
               </p>
             </div>
             <div className="hud-chip rounded-[1.2rem] px-4 py-4">
               <Sparkles className="mb-4 h-5 w-5 text-primary" />
               <p className="font-display text-lg tracking-[-0.04em] text-white">
-                제품 완성도
+                로컬 저장
               </p>
             </div>
           </div>
@@ -157,13 +157,13 @@ function RecentSessionSection({
       <Card>
         <CardHeader>
           <p className="brand-kicker">시작 경로</p>
-          <CardTitle className="text-3xl">빠른 시작 흐름</CardTitle>
+          <CardTitle className="text-3xl">시작 방법</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="glass-field rounded-[1.2rem] px-4 py-4">
             <p className="mb-2 text-sm font-medium text-white">1. 빠른 기록</p>
             <p className="text-sm leading-7 text-white/58">
-              루틴 없이 바로 운동을 기록합니다. 가장 짧은 데모 경로입니다.
+              루틴 없이 바로 기록을 시작합니다.
             </p>
           </div>
           <div className="glass-field rounded-[1.2rem] px-4 py-4">
@@ -171,7 +171,7 @@ function RecentSessionSection({
               2. 루틴 기반 기록
             </p>
             <p className="text-sm leading-7 text-white/58">
-              저장된 루틴을 고르고 바로 세션으로 진입합니다.
+              저장된 루틴을 선택해 바로 세션을 엽니다.
             </p>
           </div>
           <div className="glass-field rounded-[1.2rem] px-4 py-4">
@@ -179,7 +179,7 @@ function RecentSessionSection({
               3. 최근 세션 복귀
             </p>
             <p className="text-sm leading-7 text-white/58">
-              방금 끝낸 기록을 다시 열어 이어서 입력하거나 검토할 수 있습니다.
+              최근 세션을 다시 열어 이어서 기록하거나 확인합니다.
             </p>
           </div>
         </CardContent>
@@ -195,9 +195,9 @@ function TrainingSnapshotSection({
   return (
     <section className="space-y-4">
       <SectionHeading
-        eyebrow="Training Snapshot"
-        title="쌓인 기록이 운동 앱다운 깊이를 만듭니다."
-        description="최근 7일 활동, 연속 streak, 루틴별 사용 비중을 홈에서 바로 읽을 수 있게 확장했습니다."
+        eyebrow="운동 요약"
+        title="최근 기록을 한눈에 확인하세요."
+        description="이번 주 활동, 연속 기록, 루틴별 비중을 홈에서 바로 확인할 수 있습니다."
       />
 
       {isHydratingOverview ? (
@@ -211,7 +211,7 @@ function TrainingSnapshotSection({
           <CardContent className="space-y-3 pt-6 text-sm text-white/58">
             <p>아직 집계할 운동 기록이 없습니다.</p>
             <p>
-              첫 세션을 저장하면 `총 세션`, `최근 7일 활동`, `루틴 사용 비중`이
+              첫 세션을 저장하면 `총 세션`, `이번 주 활동`, `루틴 사용 비중`이
               이 영역에 쌓입니다.
             </p>
           </CardContent>
@@ -220,7 +220,7 @@ function TrainingSnapshotSection({
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(320px,0.92fr)]">
           <Card>
             <CardHeader>
-              <p className="brand-kicker">Overview</p>
+              <p className="brand-kicker">전체 요약</p>
               <CardTitle className="text-3xl">핵심 지표</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -244,7 +244,7 @@ function TrainingSnapshotSection({
                     {trainingSnapshot.totalRoutines}
                   </p>
                   <p className="mt-2 text-sm text-white/52">
-                    홈에서 바로 시작 가능한 루틴 수
+                    바로 시작할 수 있는 루틴 수
                   </p>
                 </div>
                 <div className="glass-field rounded-[1.2rem] px-4 py-4">
@@ -283,8 +283,8 @@ function TrainingSnapshotSection({
 
           <Card>
             <CardHeader>
-              <p className="brand-kicker">Streak & Activity</p>
-              <CardTitle className="text-3xl">최근 흐름 차트</CardTitle>
+              <p className="brand-kicker">이번 주 기록</p>
+              <CardTitle className="text-3xl">주간 활동 차트</CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
               <div className="grid gap-3 sm:grid-cols-2">
@@ -318,18 +318,18 @@ function TrainingSnapshotSection({
                 </div>
               </div>
 
-              <TrainingActivityChart data={trainingSnapshot.recentActivity} />
+              <TrainingActivityChart data={trainingSnapshot.weeklyActivity} />
 
               <p className="text-sm leading-6 text-white/56">
-                세션 수와 볼륨을 함께 보여줘서, 단순 방문 수가 아니라 실제 훈련
-                강도 변화도 바로 읽을 수 있게 했습니다.
+                이번 주 월요일부터 일요일까지의 세션 수와 볼륨을 함께 보여줘
+                주간 흐름을 바로 확인할 수 있습니다.
               </p>
             </CardContent>
           </Card>
 
           <Card className="xl:col-span-2">
             <CardHeader>
-              <p className="brand-kicker">Routine Insights</p>
+              <p className="brand-kicker">루틴 분석</p>
               <CardTitle className="text-3xl">루틴별 사용 비중</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)]">
@@ -384,14 +384,13 @@ function TrainingSnapshotSection({
                 ))}
               </div>
 
-              <div className="surface-soft flex items-start gap-3 rounded-[1.2rem] px-4 py-4 text-sm text-white/60 xl:col-span-2">
-                <Activity className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                <p className="leading-6">
-                  홈에서 자주 쓰는 루틴과 누적 볼륨을 바로 보여줘서, 단순 기록
-                  앱이 아니라 실제 운동 패턴을 읽는 제품처럼 보이도록
-                  구성했습니다.
-                </p>
-              </div>
+                <div className="surface-soft flex items-start gap-3 rounded-[1.2rem] px-4 py-4 text-sm text-white/60 xl:col-span-2">
+                  <Activity className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <p className="leading-6">
+                    자주 사용하는 루틴과 누적 볼륨을 함께 보여줘 최근 운동
+                    패턴을 빠르게 파악할 수 있습니다.
+                  </p>
+                </div>
             </CardContent>
           </Card>
         </div>
@@ -411,7 +410,7 @@ function FeaturedRoutineSection({
       <SectionHeading
         eyebrow="최근 루틴"
         title="바로 시작할 루틴"
-        description="상세 화면을 보기 전에 먼저 시작할 수 있게 두었습니다. 제품 신뢰는 클릭 수를 줄이는 데서도 드러납니다."
+        description="자주 쓰는 루틴은 바로 시작하고, 필요할 때만 상세 화면을 확인하세요."
         action={
           <Button asChild size="sm" variant="outline">
             <Link href="/routines">전체 보기</Link>
@@ -428,7 +427,7 @@ function FeaturedRoutineSection({
       ) : featuredRoutines.length === 0 ? (
         <Card>
           <CardContent className="pt-6 text-sm text-white/58">
-            아직 루틴이 없습니다. `루틴 추가`로 첫 흐름을 만들어 주세요.
+            아직 루틴이 없습니다. `루틴 추가`에서 첫 루틴을 만들어 보세요.
           </CardContent>
         </Card>
       ) : (
@@ -449,7 +448,7 @@ function FeaturedRoutineSection({
               <CardContent className="space-y-5">
                 <p className="min-h-16 text-sm leading-7 text-white/56">
                   {routine.description ??
-                    "설명이 없습니다. 어떤 루틴인지 한 줄만 있어도 신뢰도가 올라갑니다."}
+                    "설명이 없습니다. 한 줄 메모를 남겨 두면 루틴을 다시 고를 때 더 쉽습니다."}
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <Button
@@ -483,7 +482,7 @@ export default function HomeView({ overview, sessionStart }: HomeViewProps) {
     <PageShell
       eyebrow="로컬 우선 운동 기록"
       title="Workout PWA"
-      description="포트폴리오용 간판 프로젝트로 보이려면 첫인상뿐 아니라 제품 완성도가 보여야 합니다. 그래서 홈에서 바로 시작, 최근 기록 이어가기, 루틴 기반 시작, 활동 데이터 요약까지 한 화면에 정리했습니다."
+      description="홈에서 새 세션을 시작하고, 최근 기록을 이어 보고, 자주 쓰는 루틴으로 바로 들어갈 수 있습니다. 저장된 기록은 기기 안에 유지되어 언제든 다시 이어서 기록할 수 있습니다."
       actions={
         <>
           <Button
@@ -512,9 +511,9 @@ export default function HomeView({ overview, sessionStart }: HomeViewProps) {
       }
       meta={
         <>
-          <StatPill label="진입" value="홈에서 바로 시작" icon={Dumbbell} />
-          <StatPill label="복귀" value="최근 세션 이어가기" icon={History} />
-          <StatPill label="복원력" value="오프라인 저장" icon={CloudOff} />
+          <StatPill label="시작" value="홈에서 바로 기록" icon={Dumbbell} />
+          <StatPill label="이어쓰기" value="최근 세션 열기" icon={History} />
+          <StatPill label="저장" value="로컬에 안전하게 보관" icon={CloudOff} />
         </>
       }
     >

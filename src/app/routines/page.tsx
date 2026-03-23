@@ -206,6 +206,15 @@ export default function RoutinesPage() {
                       "설명이 없습니다. 어떤 루틴인지 한 줄만 적어도 선택 흐름이 훨씬 빨라집니다."}
                   </p>
 
+                  <div className="surface-soft rounded-[1rem] px-4 py-3 text-sm text-white/58">
+                    운동 {routine.exercises.length}개 · 목표 세트{" "}
+                    {routine.exercises.reduce(
+                      (sum, exercise) => sum + exercise.targetSets,
+                      0,
+                    )}
+                    개
+                  </div>
+
                   <div className="flex flex-wrap gap-3">
                     <Button
                       type="button"

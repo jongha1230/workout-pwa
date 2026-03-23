@@ -42,12 +42,3 @@ export type HomeOverviewData = {
   featuredRoutines: HomeRoutineSummary[];
   trainingSnapshot: TrainingSnapshot;
 };
-
-export type HomeStartSessionActions = {
-  isStartingQuickSession: boolean;
-  startingRoutineId: string | null;
-  actionErrorMessage: string | null;
-  startQuickSession: () => Promise<void>;
-  startRoutineSession: (routineId: string) => Promise<void>;
-  clearActionError: () => void;
-};

@@ -23,9 +23,9 @@ import {
 import type {
   HomeOverviewData,
   HomeRoutineSummary,
-  HomeStartSessionActions,
   TrainingSnapshot,
 } from "@/components/home/home.types";
+import type { StartSessionActions } from "@/components/session/use-start-session";
 import {
   RoutineShareChart,
   TrainingActivityChart,
@@ -61,7 +61,7 @@ const getRoutineLabelForSession = (
 
 type HomeViewProps = {
   overview: HomeOverviewData;
-  sessionStart: HomeStartSessionActions;
+  sessionStart: StartSessionActions;
 };
 
 type RecentSessionSectionProps = {

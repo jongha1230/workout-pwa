@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 import HomeView from "@/components/home/home-view";
 import { useHomeOverview } from "@/components/home/use-home-overview";
-import { useStartSession } from "@/components/home/use-start-session";
+import { useStartSession } from "@/components/session/use-start-session";
 
 const SESSION_SHELL_PREFETCH_PATH =
   "/session/11111111-1111-1111-1111-111111111111";

@@ -58,7 +58,7 @@ jobs:
           echo "Using diff range: $DIFF_RANGE"
 
           mapfile -t CHANGED_FILES < <(
-            git diff --name-only "$DIFF_RANGE" \
+            git diff --name-only --diff-filter=d "$DIFF_RANGE" \
               | grep -E '\.(ts|tsx|js|jsx|json|md|css|yml|yaml)$' || true
           )
 

@@ -5,18 +5,25 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Compass, Play, Sparkles } from "lucide-react";
 
 import { PageShell, StatPill } from "@/components/brand/page-shell";
+import { useStartSession } from "@/components/session/use-start-session";
 import { Button } from "@/components/ui/button";
 import { getRoutine } from "@/entities/routine/repo/routine.repo";
-import { createSession } from "@/entities/session/repo/session.repo";
+
+const SESSION_SHELL_PREFETCH_PATH =
+  "/session/11111111-1111-1111-1111-111111111111";
 
 function NewSessionContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const routineId = searchParams.get("routineId");
+  const normalizedRoutineId =
+    routineId && routineId.trim().length > 0 ? routineId : null;
+  const sessionStart = useStartSession({ markPendingQuickSession: false });
   const [routineName, setRoutineName] = useState<string | null>(null);
-  const [isStarting, setIsStarting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const selectedRoutineName = routineId ? (routineName ?? routineId) : null;
+  const isStarting = normalizedRoutineId
+    ? sessionStart.startingRoutineId === normalizedRoutineId
+    : sessionStart.isStartingQuickSession;
 
   useEffect(() => {
     if (!routineId) return;
@@ -37,26 +44,17 @@ function NewSessionContent() {
     };
   }, [routineId]);
 
+  useEffect(() => {
+    router.prefetch(SESSION_SHELL_PREFETCH_PATH);
+  }, [router]);
+
   const handleStart = async () => {
-    if (isStarting) return;
-
-    const sessionId = crypto.randomUUID();
-    const normalizedRoutineId =
-      routineId && routineId.trim().length > 0 ? routineId : null;
-
-    setIsStarting(true);
-    setErrorMessage(null);
-
-    try {
-      await createSession({
-        id: sessionId,
-        routineId: normalizedRoutineId,
-      });
-      router.push(`/session/${sessionId}`);
-    } catch {
-      setErrorMessage("세션 생성에 실패했습니다. 다시 시도해 주세요.");
-      setIsStarting(false);
+    if (normalizedRoutineId) {
+      await sessionStart.startRoutineSession(normalizedRoutineId);
+      return;
     }
+
+    await sessionStart.startQuickSession();
   };
 
   return (
@@ -87,9 +85,9 @@ function NewSessionContent() {
         </>
       }
     >
-      {errorMessage ? (
+      {sessionStart.actionErrorMessage ? (
         <p className="rounded-[1.2rem] border border-destructive/20 bg-red-50/70 px-4 py-3 text-sm font-medium text-destructive">
-          {errorMessage}
+          {sessionStart.actionErrorMessage}
         </p>
       ) : null}
     </PageShell>

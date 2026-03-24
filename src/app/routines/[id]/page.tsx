@@ -19,6 +19,7 @@ import {
   StatPill,
 } from "@/components/brand/page-shell";
 import { RoutineTemplateForm } from "@/components/routine/routine-template-form";
+import { useStartSession } from "@/components/session/use-start-session";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -27,7 +28,6 @@ import {
   updateRoutine,
 } from "@/entities/routine/repo/routine.repo";
 import {
-  createSession,
   deleteSession,
   listSessionsByRoutine,
 } from "@/entities/session/repo/session.repo";
@@ -39,15 +39,18 @@ const formatDateTime = (timestamp: number) =>
     timeStyle: "short",
   }).format(new Date(timestamp));
 
+const SESSION_SHELL_PREFETCH_PATH =
+  "/session/11111111-1111-1111-1111-111111111111";
+
 export default function RoutineDetailPage() {
   const { id: routineId } = useParams<{ id: string }>();
   const router = useRouter();
+  const sessionStart = useStartSession();
 
   const [routine, setRoutine] = useState<RoutineRecord | null>(null);
   const [sessions, setSessions] = useState<SessionRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeletingRoutine, setIsDeletingRoutine] = useState(false);
-  const [isStartingSession, setIsStartingSession] = useState(false);
   const [isEditingRoutine, setIsEditingRoutine] = useState(false);
   const [deletingSessionId, setDeletingSessionId] = useState<string | null>(
     null,
@@ -86,6 +89,10 @@ export default function RoutineDetailPage() {
       cancelled = true;
     };
   }, [routineId]);
+
+  useEffect(() => {
+    router.prefetch(SESSION_SHELL_PREFETCH_PATH);
+  }, [router]);
 
   const handleDeleteSession = async (sessionId: string) => {
     if (deletingSessionId) return;
@@ -131,23 +138,9 @@ export default function RoutineDetailPage() {
   };
 
   const handleStartSession = async () => {
-    if (!routine || isStartingSession) return;
-
-    const sessionId = crypto.randomUUID();
-
-    setIsStartingSession(true);
+    if (!routine) return;
     setErrorMessage(null);
-
-    try {
-      await createSession({
-        id: sessionId,
-        routineId: routine.id,
-      });
-      router.push(`/session/${sessionId}`);
-    } catch {
-      setErrorMessage("세션 생성에 실패했습니다.");
-      setIsStartingSession(false);
-    }
+    await sessionStart.startRoutineSession(routine.id);
   };
 
   const totalSets = sessions.reduce(
@@ -203,13 +196,15 @@ export default function RoutineDetailPage() {
               <Button
                 type="button"
                 size="lg"
-                disabled={isStartingSession}
+                disabled={sessionStart.startingRoutineId === routine.id}
                 onClick={() => {
                   void handleStartSession();
                 }}
               >
                 <Play className="h-4 w-4" />
-                {isStartingSession ? "세션 시작 중..." : "이 루틴으로 시작"}
+                {sessionStart.startingRoutineId === routine.id
+                  ? "세션 시작 중..."
+                  : "이 루틴으로 시작"}
               </Button>
               <Button
                 type="button"
@@ -255,6 +250,14 @@ export default function RoutineDetailPage() {
         <Card className="border-destructive/30 bg-destructive/12">
           <CardContent className="pt-6 text-sm font-medium text-destructive">
             {errorMessage}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {!isLoading && sessionStart.actionErrorMessage ? (
+        <Card className="border-destructive/30 bg-destructive/12">
+          <CardContent className="pt-6 text-sm font-medium text-destructive">
+            {sessionStart.actionErrorMessage}
           </CardContent>
         </Card>
       ) : null}

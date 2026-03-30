@@ -458,7 +458,10 @@ export default function SessionDetailPage() {
       setErrorMessage(null);
       toast.success("세션이 저장되었습니다.");
       void flushSyncEngine().catch((flushError: unknown) => {
-        console.error("Failed to flush sync engine after local save.", flushError);
+        console.error(
+          "Failed to flush sync engine after local save.",
+          flushError,
+        );
       });
     } catch (error) {
       console.error("Failed to save session.", error);

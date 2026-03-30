@@ -21,6 +21,7 @@ type UseStartSessionOptions = {
 
 const DEFAULT_START_SESSION_ERROR =
   "세션 생성에 실패했습니다. 다시 시도해 주세요.";
+const SESSION_NAVIGATION_FALLBACK_DELAY_MS = 400;
 
 export function useStartSession(
   options: UseStartSessionOptions = {},
@@ -39,6 +40,20 @@ export function useStartSession(
     setActionErrorMessage(null);
   };
 
+  const navigateToSession = (sessionId: string) => {
+    const href = `/session/${sessionId}`;
+
+    router.prefetch(href);
+    router.push(href);
+
+    if (typeof window === "undefined") return;
+
+    window.setTimeout(() => {
+      if (window.location.pathname === href) return;
+      window.location.assign(href);
+    }, SESSION_NAVIGATION_FALLBACK_DELAY_MS);
+  };
+
   const startSession = async (routineId: string | null) => {
     if (routineId) {
       if (startingRoutineId) return;
@@ -50,6 +65,7 @@ export function useStartSession(
 
     const sessionId = crypto.randomUUID();
     clearActionError();
+    router.prefetch(`/session/${sessionId}`);
 
     try {
       await createSession({
@@ -61,7 +77,7 @@ export function useStartSession(
         setPendingSessionId(sessionId);
       }
 
-      router.push(`/session/${sessionId}`);
+      navigateToSession(sessionId);
     } catch {
       setActionErrorMessage(DEFAULT_START_SESSION_ERROR);
 

@@ -97,7 +97,18 @@
 - `npm run lint`
 - `npm run typecheck`
 - `npm run build`
-- `PLAYWRIGHT_BASE_URL=http://127.0.0.1:3210 PLAYWRIGHT_PORT=3210 npx playwright test tests/session-persistence.spec.ts -g "routine template|starts a session directly from routine detail"`
+- `npm run test:e2e`
+
+오프라인 우선 대표 시나리오까지 포함한 재검증:
+
+- `npm run test:e2e`
+- `npm run test:e2e:prod -- -g "offline boot works|offline starts create isolated sessions|outbox transitions"`
+
+빠른 UI 회귀만 볼 때:
+
+- `npm run test:e2e:dev`
+
+`npm run test:e2e`와 `npm run test:e2e:prod`는 프로덕션 빌드 후 `next start` 기준으로 Playwright를 실행합니다. 이 경로에서만 서비스 워커가 등록되므로, 홈/루틴/기존 세션 오프라인 부팅, 오프라인 세션 ID 충돌 방지, 온라인 복귀 후 outbox 동기화까지 녹색으로 확인할 수 있습니다. `npm run test:e2e:dev`는 빠른 반복용이며 prod 서비스 워커가 필요한 시나리오는 건너뜁니다.
 
 ## 짧은 트러블슈팅 메모
 

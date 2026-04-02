@@ -1,5 +1,8 @@
 import { expect, test } from "@playwright/test";
 
+const hasProductionServiceWorkerSupport =
+  process.env.PLAYWRIGHT_USE_DEV_SERVER !== "true";
+
 const startSession = async (page: import("@playwright/test").Page) => {
   await page.goto("/");
   await page.getByRole("button", { name: "세션 시작" }).click();
@@ -402,8 +405,8 @@ test("offline boot works for home, routines, and existing session", async ({
   context,
 }) => {
   test.skip(
-    !process.env.CI,
-    "This scenario requires production service worker registration.",
+    !hasProductionServiceWorkerSupport,
+    "Run this scenario with `npm run test:e2e` or `npm run test:e2e:prod` so the production service worker is registered.",
   );
 
   await page.goto("/");
@@ -451,8 +454,8 @@ test("offline starts create isolated sessions without id collision", async ({
   context,
 }) => {
   test.skip(
-    !process.env.CI,
-    "This scenario requires production service worker registration.",
+    !hasProductionServiceWorkerSupport,
+    "Run this scenario with `npm run test:e2e` or `npm run test:e2e:prod` so the production service worker is registered.",
   );
 
   await page.goto("/");
@@ -528,8 +531,8 @@ test("outbox transitions from pending to synced after online recovery", async ({
   context,
 }) => {
   test.skip(
-    !process.env.CI,
-    "This scenario requires production service worker registration.",
+    !hasProductionServiceWorkerSupport,
+    "Run this scenario with `npm run test:e2e` or `npm run test:e2e:prod` so the production service worker is registered.",
   );
 
   await page.goto("/");

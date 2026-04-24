@@ -98,10 +98,29 @@ export async function updateRoutine(
 }
 
 export async function deleteRoutine(id: string): Promise<void> {
+  const sessionsToDelete = await db.sessions
+    .where("routineId")
+    .equals(id)
+    .toArray();
+
   await db.transaction("rw", db.routines, db.sessions, async () => {
     await db.routines.delete(id);
     await db.sessions.where("routineId").equals(id).delete();
   });
+
+  await Promise.all(
+    sessionsToDelete.map((session) =>
+      appendOutboxEvent({
+        entityType: "session",
+        entityId: session.id,
+        op: "delete",
+        payload: {
+          id: session.id,
+        },
+      }),
+    ),
+  );
+
   await appendOutboxEvent({
     entityType: "routine",
     entityId: id,

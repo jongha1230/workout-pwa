@@ -2,6 +2,19 @@
 
 운동 기록을 빠르게 시작하고, 저장된 기록을 네트워크 상태와 무관하게 다시 이어서 볼 수 있도록 만든 local-first 운동 기록 PWA입니다.
 
+## At A Glance
+
+- Problem it solves: 운동 중 네트워크 상태와 무관하게 기록을 이어가고 다시 복구할 수 있어야 합니다.
+- Key features: 빠른 세션 시작, 루틴 템플릿, Dexie 기반 로컬 저장, outbox sync, startup crash recovery, 오프라인 친화 PWA
+- Tech stack: Next.js 16, React 19, TypeScript, Zustand, Dexie, Zod, Tailwind CSS 4, Playwright
+- Architecture highlights: draft/saved state 분리, local-first source of truth, retry/backoff outbox, runtime validation
+- Testing/quality: `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build`, `npm run test:e2e`
+- Known limitations: IndexedDB quota 의존, optional sync는 append-only event delivery 단계, multi-device merge는 미구현
+- Local setup: `npm ci` 후 `npm run dev`
+- Demo: [workout-pwa-jongha.vercel.app](https://workout-pwa-jongha.vercel.app/)
+- Case study: [docs/case-study.md](./docs/case-study.md)
+- Architecture docs: [docs/local-first-architecture.md](./docs/local-first-architecture.md), [docs/sync-outbox.md](./docs/sync-outbox.md)
+
 현재 제품은 다음 흐름을 중심으로 구성되어 있습니다.
 
 - 홈에서 `세션 시작`, `최근 세션 이어가기`, `루틴 보기`를 바로 선택
@@ -96,6 +109,7 @@
 
 - `npm run lint`
 - `npm run typecheck`
+- `npm run test`
 - `npm run build`
 - `npm run test:e2e`
 
@@ -154,4 +168,7 @@
 
 ## Docs
 
+- [Case Study](./docs/case-study.md)
+- [Local-first Architecture](./docs/local-first-architecture.md)
+- [Sync Outbox](./docs/sync-outbox.md)
 - [Development Log](./docs/DEVLOG.md)

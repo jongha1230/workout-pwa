@@ -1,12 +1,13 @@
 import {
-  getRetryDelayForAttempt,
   listOutboxSyncCandidates,
+  markOutboxEventBlocked,
   markOutboxEventFailed,
   markOutboxEventProcessing,
   markOutboxEventSynced,
   resetProcessingOutboxEvents,
 } from "@/lib/sync/outbox.repo";
 import { createSyncAdapter } from "@/lib/sync/adapter-factory";
+import { getRetryDelayMs, resolveOutboxFailure } from "@/lib/sync/retry-policy";
 import type { SyncAdapter } from "@/lib/sync/types";
 
 type SyncEngineState = "idle" | "flushing" | "backoff";
@@ -78,17 +79,35 @@ class SyncEngine {
           }
 
           const nextAttemptCount = event.attemptCount + 1;
-          await markOutboxEventFailed(event.id, nextAttemptCount, result.error);
+          const failure = resolveOutboxFailure({
+            retryable: result.retryable,
+            attemptCount: nextAttemptCount,
+            error: result.error,
+          });
 
-          if (result.retryable) {
-            const delay = getRetryDelayForAttempt(nextAttemptCount);
-            retryDelayMs =
-              retryDelayMs === null ? delay : Math.min(retryDelayMs, delay);
+          if (failure.status === "blocked") {
+            await markOutboxEventBlocked(
+              event.id,
+              nextAttemptCount,
+              failure.lastError,
+            );
+            continue;
           }
+
+          await markOutboxEventFailed(
+            event.id,
+            nextAttemptCount,
+            failure.lastError,
+          );
+
+          retryDelayMs =
+            retryDelayMs === null
+              ? failure.retryDelayMs
+              : Math.min(retryDelayMs, failure.retryDelayMs);
         }
       }
     } catch (error) {
-      const fallbackRetryDelayMs = getRetryDelayForAttempt(1);
+      const fallbackRetryDelayMs = getRetryDelayMs(1);
       retryDelayMs =
         retryDelayMs === null
           ? fallbackRetryDelayMs

@@ -184,6 +184,12 @@ export default function SessionDetailPage() {
   const updateSet = useSessionStore((state) => state.updateSet);
   const removeSet = useSessionStore((state) => state.removeSet);
   const replaceSets = useSessionStore((state) => state.replaceSets);
+  const persistenceErrorMessage = useSessionStore(
+    (state) => state.persistenceErrors[sessionId] ?? null,
+  );
+  const clearPersistenceError = useSessionStore(
+    (state) => state.clearPersistenceError,
+  );
 
   const [draftBySetId, setDraftBySetId] = useState<Record<string, DraftSet>>(
     {},
@@ -290,6 +296,14 @@ export default function SessionDetailPage() {
       cancelled = true;
     };
   }, [hydrateSession, sessionId]);
+
+  useEffect(() => {
+    if (!sessionId || !persistenceErrorMessage) return;
+
+    toast.error(persistenceErrorMessage, {
+      id: `session-persist-error-${sessionId}`,
+    });
+  }, [persistenceErrorMessage, sessionId]);
 
   const handleAddSet = () => {
     if (!sessionId) return;
@@ -455,6 +469,7 @@ export default function SessionDetailPage() {
 
     try {
       await replaceSets(sessionId, nextSets);
+      clearPersistenceError(sessionId);
       setErrorMessage(null);
       toast.success("세션이 저장되었습니다.");
       void flushSyncEngine().catch((flushError: unknown) => {
@@ -610,6 +625,12 @@ export default function SessionDetailPage() {
               {errorMessage ? (
                 <p className="rounded-[1rem] border border-destructive/30 bg-destructive/12 px-4 py-3 text-sm font-medium text-destructive">
                   {errorMessage}
+                </p>
+              ) : null}
+
+              {persistenceErrorMessage ? (
+                <p className="rounded-[1rem] border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm font-medium text-amber-100">
+                  {persistenceErrorMessage}
                 </p>
               ) : null}
 

@@ -69,7 +69,12 @@ export type SessionRecord = {
 
 export type OutboxEntityType = "session" | "routine";
 export type OutboxOperation = "create" | "update" | "delete";
-export type OutboxStatus = "pending" | "processing" | "failed" | "synced";
+export type OutboxStatus =
+  | "pending"
+  | "processing"
+  | "failed"
+  | "blocked"
+  | "synced";
 
 export type OutboxEventRecord = {
   id: string;

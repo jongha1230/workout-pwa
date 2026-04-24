@@ -18,6 +18,7 @@ const cloneSets = (sets: SessionSet[]): SessionSet[] =>
 
 export type SessionStore = {
   sessions: Record<string, SessionSet[]>;
+  persistenceErrors: Record<string, string | null>;
   hydrateSession: (sessionId: string) => Promise<void>;
   addSet: (
     sessionId: string,
@@ -36,15 +37,31 @@ export type SessionStore = {
     options?: { persist?: boolean },
   ) => void;
   replaceSets: (sessionId: string, sets: SessionSet[]) => Promise<void>;
+  clearPersistenceError: (sessionId: string) => void;
+};
+
+const buildPersistenceErrorMessage = (error: unknown): string => {
+  if (error instanceof DOMException && error.name === "QuotaExceededError") {
+    return "브라우저 저장 공간이 부족해 세션을 저장하지 못했습니다. 저장 공간을 정리한 뒤 다시 시도해 주세요.";
+  }
+
+  return "브라우저 저장소에 세션을 저장하지 못했습니다. 다시 시도해 주세요.";
 };
 
 export const useSessionStore = create<SessionStore>((set, get) => {
   const persistSessionSets = async (sessionId: string, sets: SessionSet[]) => {
     await upsertSessionSets(sessionId, sets);
+    set((state) => ({
+      persistenceErrors: {
+        ...state.persistenceErrors,
+        [sessionId]: null,
+      },
+    }));
   };
 
   return {
     sessions: {},
+    persistenceErrors: {},
     hydrateSession: async (sessionId) => {
       const session = await getSession(sessionId);
       const hydratedSets = cloneSets(session?.sets ?? []);
@@ -53,6 +70,10 @@ export const useSessionStore = create<SessionStore>((set, get) => {
         sessions: {
           ...state.sessions,
           [sessionId]: hydratedSets,
+        },
+        persistenceErrors: {
+          ...state.persistenceErrors,
+          [sessionId]: null,
         },
       }));
     },
@@ -79,6 +100,13 @@ export const useSessionStore = create<SessionStore>((set, get) => {
       }));
       if (shouldPersist) {
         void persistSessionSets(sessionId, next).catch((error: unknown) => {
+          const message = buildPersistenceErrorMessage(error);
+          set((state) => ({
+            persistenceErrors: {
+              ...state.persistenceErrors,
+              [sessionId]: message,
+            },
+          }));
           console.error("Failed to persist session sets.", error);
         });
       }
@@ -99,6 +127,13 @@ export const useSessionStore = create<SessionStore>((set, get) => {
         },
       }));
       void persistSessionSets(sessionId, next).catch((error: unknown) => {
+        const message = buildPersistenceErrorMessage(error);
+        set((state) => ({
+          persistenceErrors: {
+            ...state.persistenceErrors,
+            [sessionId]: message,
+          },
+        }));
         console.error("Failed to persist session sets.", error);
       });
     },
@@ -115,6 +150,13 @@ export const useSessionStore = create<SessionStore>((set, get) => {
       }));
       if (shouldPersist) {
         void persistSessionSets(sessionId, next).catch((error: unknown) => {
+          const message = buildPersistenceErrorMessage(error);
+          set((state) => ({
+            persistenceErrors: {
+              ...state.persistenceErrors,
+              [sessionId]: message,
+            },
+          }));
           console.error("Failed to persist session sets.", error);
         });
       }
@@ -129,6 +171,14 @@ export const useSessionStore = create<SessionStore>((set, get) => {
         },
       }));
       await persistSessionSets(sessionId, next);
+    },
+    clearPersistenceError: (sessionId) => {
+      set((state) => ({
+        persistenceErrors: {
+          ...state.persistenceErrors,
+          [sessionId]: null,
+        },
+      }));
     },
   };
 });

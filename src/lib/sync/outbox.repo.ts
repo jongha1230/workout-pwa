@@ -4,6 +4,7 @@ import {
   type OutboxEventRecord,
   type OutboxOperation,
 } from "@/lib/db";
+import { getRetryDelayMs } from "@/lib/sync/retry-policy";
 
 type AppendOutboxEventInput = {
   entityType: OutboxEntityType;
@@ -12,17 +13,10 @@ type AppendOutboxEventInput = {
   payload: Record<string, unknown>;
 };
 
-const RETRY_DELAYS_MS = [5_000, 15_000, 30_000];
 const PENDING_STATUSES = new Set<OutboxEventRecord["status"]>([
   "pending",
   "failed",
 ]);
-
-const getRetryDelayMs = (attemptCount: number): number => {
-  const safeAttemptCount = Math.max(1, attemptCount);
-  const index = Math.min(safeAttemptCount - 1, RETRY_DELAYS_MS.length - 1);
-  return RETRY_DELAYS_MS[index];
-};
 
 const isRetryReady = (event: OutboxEventRecord, now: number): boolean => {
   if (event.status === "pending") return true;
@@ -119,6 +113,19 @@ export const markOutboxEventFailed = async (
   });
 };
 
+export const markOutboxEventBlocked = async (
+  id: string,
+  attemptCount: number,
+  errorMessage: string,
+): Promise<void> => {
+  await db.syncOutbox.update(id, {
+    status: "blocked",
+    updatedAt: Date.now(),
+    attemptCount,
+    lastError: errorMessage,
+  });
+};
+
 export const resetProcessingOutboxEvents = async (): Promise<void> => {
   const processingEvents = await db.syncOutbox
     .where("status")
@@ -151,6 +158,7 @@ export const getOutboxStatusCounts = async (): Promise<
       pending: 0,
       processing: 0,
       failed: 0,
+      blocked: 0,
       synced: 0,
     },
   );

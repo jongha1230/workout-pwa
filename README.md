@@ -171,4 +171,3 @@
 - [Case Study](./docs/case-study.md)
 - [Local-first Architecture](./docs/local-first-architecture.md)
 - [Sync Outbox](./docs/sync-outbox.md)
-- [Development Log](./docs/DEVLOG.md)

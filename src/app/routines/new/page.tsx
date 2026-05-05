@@ -11,9 +11,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createRoutine } from "@/entities/routine/repo/routine.repo";
 
 const namingPrompts = [
-  "루틴 이름은 부위 + 목적이 한 번에 보이게 적기",
-  "설명에는 템포나 빈도처럼 실제 사용 맥락 남기기",
-  "외주 포트폴리오라면 영어 이름보다 읽기 쉬운 구조 우선",
+  "어떤 부위와 목적의 루틴인지 한눈에 보이게 적어 주세요.",
+  "설명에는 반복 요일, 강도, 템포처럼 실제 운동할 때 참고할 내용을 남겨 주세요.",
+  "나중에 다시 고르기 쉽도록 너무 긴 이름보다 짧고 구체적인 이름을 권장합니다.",
 ];
 
 export default function NewRoutinePage() {
@@ -22,9 +22,9 @@ export default function NewRoutinePage() {
   return (
     <PageShell
       density="compact"
-      eyebrow="Design A Routine"
+      eyebrow="새 루틴 만들기"
       title="루틴 추가"
-      description="이 화면은 단순 입력폼이 아니라 루틴을 설계하는 첫 단계처럼 보여야 합니다. 그래서 폼과 함께 네이밍 힌트, 사용 맥락, 브랜딩 톤을 같이 배치합니다."
+      description="자주 반복하는 운동 구성을 루틴으로 저장해 세션 시작을 빠르게 만들 수 있습니다. 이름, 설명, 운동 순서를 정리해 주세요."
       actions={
         <Button asChild size="lg" variant="outline">
           <Link href="/routines">
@@ -35,16 +35,16 @@ export default function NewRoutinePage() {
       }
       meta={
         <>
-          <StatPill label="Goal" value="Readable naming" icon={Target} />
-          <StatPill label="Mood" value="Tactical glass" icon={Sparkles} />
-          <StatPill label="Next" value="Detail -> Session" icon={Plus} />
+          <StatPill label="목표" value="반복 운동 저장" icon={Target} />
+          <StatPill label="입력" value="운동 순서 정리" icon={Sparkles} />
+          <StatPill label="다음" value="세션 시작" icon={Plus} />
         </>
       }
     >
       <section className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(300px,0.9fr)]">
         <Card>
           <CardHeader>
-            <p className="brand-kicker">Form</p>
+            <p className="brand-kicker">입력 폼</p>
             <CardTitle className="text-3xl">
               루틴 정보를 입력해 주세요.
             </CardTitle>
@@ -65,9 +65,9 @@ export default function NewRoutinePage() {
 
         <Card className="bg-[linear-gradient(180deg,rgba(8,18,21,0.94),rgba(5,11,14,0.88))] text-white">
           <CardHeader>
-            <p className="brand-kicker !text-primary/90">Naming Guide</p>
+            <p className="brand-kicker !text-primary/90">작성 가이드</p>
             <CardTitle className="text-3xl text-white">
-              좋은 이름 하나가 제품 인상을 바꿉니다.
+              나중에 바로 고를 수 있는 이름이 좋습니다.
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -83,7 +83,7 @@ export default function NewRoutinePage() {
               </div>
             ))}
             <p className="text-sm leading-7 text-white/62">
-              예: `Strength Flow`, `퇴근 후 상체`, `하체 볼륨 데이`
+              예: `상체 근력`, `퇴근 후 하체`, `가벼운 회복 루틴`
             </p>
           </CardContent>
         </Card>
